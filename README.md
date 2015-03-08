@@ -2,11 +2,11 @@
 
 ### Linux Kernel CI for Debian
 
-This repository is also the source for CI of my [publicly available](https://packagecloud.io/mrmondo/debian-kernel?filter=debs) Debian Kernel packages.
-
+* Uploads publicly accessable Debian Kernel Packages to [packagecloud.io](https://packagecloud.io/mrmondo/debian-kernel?filter=debs)
+* Includes Kernel Watcher that detects new stable kernel releases and triggers builds.
+* Tested with Gitlab-CI and Travis-CI but should work on any CI system.
 * Runs in an isolated and disposble docker container.
-* Tested with Gitlab-CI but should work on any CI system.
-* No root access is required for the building with Docker.
+* No root access required when building with Docker.
 * Both ther build and the kernels Work with Debian Wheezy (7) and Jessie (8).
 
 ## Usage
