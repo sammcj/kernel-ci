@@ -9,3 +9,5 @@ install:
 
 script:
   - sudo make no_docker_build
+  - package_cloud yank mrmondo/debian-kernel/debian/jessie $PACKAGE_NAME || true
+  - package_cloud push mrmondo/debian-kernel/debian/jessie $PACKAGE_NAME

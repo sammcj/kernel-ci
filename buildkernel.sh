@@ -37,9 +37,6 @@ set -xe
 # ATTENTION: Make sure you really trust it!
 # DEFAULT VALUE: "ABAF 11C6 5A29 70B1 30AB  E3C4 79BE 3E43 0041 1886"
 
-# PACKAGE_NAME
-# DEFAULT VALUE: "linux-image-$KERNEL_VERSION-$VERSION_POSTFIX.deb"
-
 # SOURCE_URL_BASE
 # Where the archive and sources are located
 # DEFAULT VALUE: "https://kernel.org/pub/linux/kernel/v3.x"
@@ -82,7 +79,6 @@ set -xe
 
 TRUSTED_FINGERPRINT='ABAF 11C6 5A29 70B1 30AB  E3C4 79BE 3E43 0041 1886'
 VERSION_POSTFIX=${VERSION_POSTFIX-"-ci"}
-PACKAGE_NAME="linux-image-$KERNEL_VERSION-$VERSION_POSTFIX.deb"
 SOURCE_URL_BASE=${SOURCE_URL_BASE-"https://kernel.org/pub/linux/kernel/v3.x"}
 KEYSERVER=hkp://pool.sks-keyservers.net
 BUILD_ONLY_LOADED_MODULES=${BUILD_ONLY_LOADED_MODULES-"no"}
@@ -132,7 +128,7 @@ BuildEnv() {
 # --------------DOWNLOAD------------------
 
 # Remove spaces from the fingerprint to get a "long key ID" (see gpg manpage)
-TRUSTEDLONGID=`echo $TRUSTED_FINGERPRINT |  sed "s/ //g"`
+TRUSTEDLONGID=$(echo "$TRUSTED_FINGERPRINT" |  sed "s/ //g")
 
 # Directory that is used by this script to store the trusted GPG-Key (not your personal GPG directory!)
 export GNUPGHOME=./kernelkey
@@ -141,34 +137,34 @@ export GNUPGHOME=./kernelkey
 function RecvKey()
 {
   echo "Receiving key $TRUSTED_FINGERPRINT from the keyserver..."
-  [ ! -d $GNUPGHOME ] || rm -rf $GNUPGHOME # makes sure no stale keys are hanging around
-  mkdir $GNUPGHOME
-  chmod og-rwx $GNUPGHOME
-  gpg --keyserver $KEYSERVER --recv-keys $TRUSTEDLONGID
+  [ ! -d "$GNUPGHOME" ] || rm -rf "$GNUPGHOME" # makes sure no stale keys are hanging around
+  mkdir "$GNUPGHOME"
+  chmod og-rwx "$GNUPGHOME"
+  gpg --keyserver "$KEYSERVER" --recv-keys "$TRUSTEDLONGID"
 }
 
 # Downloads the sources and their signature file.
 function DownloadSources()
 {
-  DownloadManager $SOURCE_URL_BASE/linux-$KERNEL_VERSION.tar.xz
-  DownloadManager $SOURCE_URL_BASE/linux-$KERNEL_VERSION.tar.sign
+  DownloadManager "$SOURCE_URL_BASE/linux-$KERNEL_VERSION".tar.xz
+  DownloadManager "$SOURCE_URL_BASE/linux-$KERNEL_VERSION".tar.sign
 }
 
 # Verifies the downloaded sources are signed with the trusted key and extracts them.
 function VerifyExtract()
 {
   echo "Extracting downloaded sources to tar..."
-  [ -f linux-$KERNEL_VERSION.tar ] || unxz --keep linux-$KERNEL_VERSION.tar.xz
+  [ -f linux-"$KERNEL_VERSION".tar ] || unxz --keep linux-"$KERNEL_VERSION".tar.xz
 
   #Commented out as often fails for no reason - would be nice to have see issue #1
   #echo "Verifying tar is signed with the trusted key..."
-  #gpg -v --trusted-key 0x${TRUSTEDLONGID:24} --verify linux-$KERNEL_VERSION.tar.sign
+  #gpg -v --trusted-key 0x${TRUSTEDLONGID:24} --verify linux-"$KERNEL_VERSION".tar.sign
 
-  [ ! -d linux-$KERNEL_VERSION ] || rm -rf linux-$KERNEL_VERSION
+  [ ! -d linux-"$KERNEL_VERSION" ] || rm -rf linux-"$KERNEL_VERSION"
 
   echo "Extracting tar..."
-  tar -xf linux-$KERNEL_VERSION.tar
-  rm linux-$KERNEL_VERSION.tar
+  tar -xf linux-"$KERNEL_VERSION".tar
+  rm linux-"$KERNEL_VERSION".tar
 }
 
 # --------------CONFIG------------------
@@ -176,10 +172,10 @@ function VerifyExtract()
 # Copies the configuration of the running kernel and applies defaults to all settings that are new in the upstream version.
 function SetCurrentConfig()
 {
-  pushd ./linux-$KERNEL_VERSION
+  pushd ./linux-"$KERNEL_VERSION"
 
   # Copy settings of the currently running kernel
-  cp $BUILD_DIR/kernel_config ./.config
+  cp "$BUILD_DIR"/kernel_config ./.config
 
   # Debuginfo is only needed if you plan to use binary object tools like crash, kgdb, and SystemTap on the kernel.
   scripts/config --disable DEBUG_INFO
@@ -187,7 +183,7 @@ function SetCurrentConfig()
   # Use the copied configuration and apply defaults to all new settings
   yes "" | make oldconfig
 
-  if [ yes == $BUILD_ONLY_LOADED_MODULES ]
+  if [ yes == "$BUILD_ONLY_LOADED_MODULES" ]
   then
     echo "Disabling modules that are not loaded by the running system..."
     make localmodconfig
@@ -200,13 +196,14 @@ function SetCurrentConfig()
 
 function Build()
 {
-  pushd ./linux-$KERNEL_VERSION
+  pushd ./linux-"$KERNEL_VERSION"
 
   echo "Now building the kernel, this will take a while..."
-  time fakeroot make-kpkg --jobs `getconf _NPROCESSORS_ONLN` --append-to-version "$VERSION_POSTFIX" --initrd kernel_image
-  mv ../linux-image*.deb ../$PACKAGE_NAME
+  time fakeroot make-kpkg --jobs "$(getconf _NPROCESSORS_ONLN)" --append-to-version "$VERSION_POSTFIX" --initrd kernel_image
+
   popd
 
+  PACKAGE_NAME="$(ls -m1 linux-image*.deb)"
   echo "Congratulations! You just build a linux kernel."
   echo "Use the following command to install it: dpkg -i $PACKAGE_NAME"
 }
@@ -215,8 +212,8 @@ function Build()
 function Sum()
 {
   pwd
-  pushd ./linux-$KERNEL_VERSION
-  md5sum $PACKAGE_NAME
+  pushd ./linux-"$KERNEL_VERSION"
+  md5sum "$PACKAGE_NAME"
   popd
 }
 
@@ -226,10 +223,10 @@ function Sum()
 function RepreproPush()
 {
   pwd
-  pushd ./linux-$KERNEL_VERSION
+  pushd ./linux-"$KERNEL_VERSION"
 
-  scp $PACKAGE_NAME $REREPRO_HOST:/var/tmp
-  ssh $REREPRO_HOST reprepro -A all -Vb $REPREPO_URL /var/tmp/$PACKAGE_NAME
+  scp "$PACKAGE_NAME" "$REREPRO_HOST":/var/tmp
+  ssh "$REREPRO_HOST" reprepro -A all -Vb "$REPREPO_URL" /var/tmp/"$PACKAGE_NAME"
   popd
 
   echo "Image pushed to $REREPRO_HOST and imported to reprepro"
@@ -238,12 +235,11 @@ function RepreproPush()
 # Pushes the package to packagecloud.io
 function PackageCloud()
 {
-  pwd
-  pushd ./linux-$KERNEL_VERSION
-  # Remove the package if it already exists with the same name
-  package_cloud yank $PACKAGE_CLOUD_URL $PACKAGE_NAME || true
-  package_cloud push $PACKAGE_CLOUD_URL $PACKAGE_NAME
-  popd
+  pwd && ls -l
+
+  package_cloud yank mrmondo/debian-kernel/debian/jessie $PACKAGE_NAME || true
+  package_cloud push mrmondo/debian-kernel/debian/jessie $PACKAGE_NAME
+
 }
 
 # --------------RUN------------------

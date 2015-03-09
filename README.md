@@ -8,6 +8,26 @@
 * Runs in an isolated and disposble docker container.
 * No root access required when building with Docker.
 * Both ther build and the kernels Work with Debian Wheezy (7) and Jessie (8).
+* Supports uploading built packages to a remote server and adding them to [reprepro](https://wiki.debian.org/SettingUpSignedAptRepositoryWithReprepro)
+
+---
+
+<!-- MarkdownTOC -->
+
+- [Usage](#usage)
+  - [Docker](#docker)
+  - [Build Kernel Deb Without Docker](#build-kernel-deb-without-docker)
+- [Public CI Builds](#public-ci-builds)
+- [Optional Configuration](#optional-configuration)
+  - [Post Processing Options](#post-processing-options)
+- [TODO:](#todo)
+- [Example Output](#example-output)
+
+<!-- /MarkdownTOC -->
+
+---
+
+**Note: Issue #1 means that source key checking is not currently enabled**
 
 ## Usage
 ### Docker
@@ -20,24 +40,95 @@ After a successfully building the kernel package, the kernel will be copied to /
 EXPORT BUILD_DIR=/home/ci #Repo location - Defaults to $HOME
 sudo make no_docker_build
 ```
-#### Optional Configuration
-```
-export KERNEL_VERSION="3.19.1"
-export VERSION_POSTFIX="-ci"
-export SOURCE_URL_BASE="http://great.kernel.mirror.org/linux/kernel/v3.x"
-```
+
+## Public CI Builds
+Travis Build: [![Build Status](https://travis-ci.org/sammcj/kernel-ci.svg?branch=master)](https://travis-ci.org/sammcj/kernel-ci)
+
+Successful builds from this project get uploaded to [PackageCloud.io](https://packagecloud.io/mrmondo/debian-kernel?filter=debs)
+
+You may add the repository for them by running: `curl https://packagecloud.io/install/repositories/mrmondo/debian-kernel/script.deb | sudo bash`
+
+## Optional Configuration
+The following optional environment variables can be configured as required
+
+* `KERNEL_VERSION`
+
+Default Value: Latest STABLE kernel version
+
+* `VERSION_POSTFIX`
+
+For restrictions see the --append-to-version option of make-kpg.c
+
+Default Value: `-ci`
+
+* `TRUSTED_FINGERPRINT`
+
+Fingerprint of a trusted key the kernel is signed with
+See http://www.kernel.org/signature.html
+    http://lwn.net/Articles/461647/
+
+ATTENTION: Make sure you really trust it!
+
+Default Value: `ABAF 11C6 5A29 70B1 30AB  E3C4 79BE 3E43 0041 1886`
+
+* `SOURCE_URL_BASE`
+
+Where the archive and sources are located
+
+Default Value: `https://kernel.org/pub/linux/kernel/v3.x`
+
+* `KEYSERVER`
+
+Server used to get the trusted key from.
+
+Default Value: `hkp://pool.sks-keyservers.net`
+
+* `BUILD_ONLY_LOADED_MODULES`
+
+Set to yes if you want to build only the modules that are currently
+loaded Speeds up the build. But modules that are not currently
+loaded will be missing!  Only usefull if you really have to speed up
+the build time and the kernel is intended for the running system and
+the hardware is not expected to change.
+
+Default Value: `no`
+
+### Post Processing Options
+
+* `PACKAGECLOUD`
+
+Enable pushing to reprepro upon successful build
+
+Default Value: `false`
+
+* `PACKAGE_CLOUD_URL`
+
+Must be replaced if you wish to upload to packagecloud.io
+
+Default Value: `mrmondo/debian-kernel/debian/jessie`
+
+* `REPREPRO`
+
+Enable pushing to reprepro upon successful build
+
+Default Value: `false`
+
+* `REREPRO_HOST`
+
+The username and password to login to the reprepro host
+
+Default Value: `ci@aptproxy`
+
+* `REPREPO_URL`
+
+The URL of the reprepro mirror
+
+Default Value: `var/vhost/mycoolaptmirror.com/html`
 
 ## TODO:
 * See [issues](https://github.com/sammcj/kernel-ci/issues)
 
-## Public CI Builds
-* Travis Build: [![Build Status](https://travis-ci.org/sammcj/kernel-ci.svg?branch=master)](https://travis-ci.org/sammcj/kernel-ci)
-
-* Successful builds from this project get uploaded to [PackageCloud.io](https://packagecloud.io/mrmondo/debian-kernel?filter=debs)
-* You may add the repository for them by running: `curl https://packagecloud.io/install/repositories/mrmondo/debian-kernel/script.deb | sudo bash`
-
-
-## Example
+## Example Output
 ```bash
 cd /home/gitlab_ci_runner/gitlab-ci-runner/tmp/builds/project-27 && git reset --hard && git clean -fdx && git remote set-url origin https://gitlab-ci-token:blablabla@gitlab.yourcompany.com/systems/kernel.git && git fetch origin
 HEAD is now at 9faa7a2 initramfs-tools
