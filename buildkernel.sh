@@ -52,7 +52,7 @@ set -xe
 
 # KEYSERVER
 # Server used to get the trusted key from.
-# DEFAULT VALUE: "hkp://keys.gnupg.net"
+# DEFAULT VALUE: "x-hkp://pool.sks-keyservers.net"
 
 # KERNEL_ORG_KEY
 # Currently using Greg Kroah-Hartman's public key
@@ -115,7 +115,7 @@ APT_UPDATE=${APT_UPDATE:-"true"}
 TRUSTED_FINGERPRINT=${TRUSTED_FINGERPRINT:-"C75D C40A 11D7 AF88 9981  ED5B C86B A06A 517D 0F0E"}
 VERSION_POSTFIX=${VERSION_POSTFIX:-"-ci"}
 SOURCE_URL_BASE=${SOURCE_URL_BASE:-"https://kernel.org/pub/linux/kernel/v3.x"}
-KEYSERVER=${KEYSERVER:-"hkp://keys.gnupg.net"}
+KEYSERVER=${KEYSERVER:-"x-hkp://pool.sks-keyservers.net"}
 KERNEL_ORG_KEY=${KERNEL_ORG_KEY:-"6092693E"}
 BUILD_ONLY_LOADED_MODULES=${BUILD_ONLY_LOADED_MODULES:-"false"}
 PACKAGECLOUD=${PACKAGECLOUD:-"false"}
@@ -131,8 +131,8 @@ GCC_VERSION="$(gcc -dumpversion|awk -F "." '{print $1"."$2}')"
 
 if [ "$GRSEC" = "true" ]; then
   # Get the latest grsec patch
-  LATEST_GRSEC_PATCH="$(curl ${GRSEC_RSS}|egrep -o 'https[^ ]*.patch'|sort|uniq|head -1)"
-  LATEST_GRSEC_KERNEL_VERSION="$(echo $LATEST_GRSEC_PATCH|cut -f 3 -d -;)"
+  LATEST_GRSEC_PATCH="$(curl "${GRSEC_RSS}"|egrep -o 'https[^ ]*.patch'|sort|uniq|head -1)"
+  LATEST_GRSEC_KERNEL_VERSION="$(echo "$LATEST_GRSEC_PATCH"|cut -f 3 -d -;)"
   KERNEL_VERSION="$LATEST_GRSEC_KERNEL_VERSION"
   GRSEC_TRUSTEDLONGID=$(echo "$GRSEC_TRUSTED_FINGERPRINT" |  sed "s/ //g")
 else
@@ -181,6 +181,8 @@ if [ "$APT_UPDATE" = "true" ]; then
   apt-get -qq upgrade
 fi
 
+mkdir -p kpatch
+
 # --------------DOWNLOAD------------------
 
 # Remove spaces from the fingerprint to get a "long key ID" (see gpg manpage)
@@ -196,7 +198,19 @@ function RecvKey()
   [ ! -d "$GNUPGHOME" ] || rm -rf "$GNUPGHOME" # makes sure no stale keys are hanging around
   mkdir "$GNUPGHOME"
   chmod og-rwx "$GNUPGHOME"
-  gpg --keyserver "$KEYSERVER" --recv-keys "$KERNEL_ORG_KEY"
+
+  # Sometimes fetching the GPG key may fail, wait one second and try again
+  KEY_MAX_TRIES=5
+  COUNT=0
+  while [  $COUNT -lt $KEY_MAX_TRIES ]; do
+    gpg --keyserver "$KEYSERVER" --recv-keys "$KERNEL_ORG_KEY"
+    if [ $? -eq 1 ];then
+      sleep 1
+      let COUNT=COUNT+1
+    else
+      break
+    fi
+  done
 }
 
 # Downloads the sources and their signature file.
@@ -216,7 +230,7 @@ function VerifyExtract()
   then
 
     echo "Verifying tar is signed with the trusted key..."
-    gpg -v --trusted-key 0x${TRUSTEDLONGID:24} --verify linux-"$KERNEL_VERSION".tar.sign
+    gpg -v --trusted-key "0x${TRUSTEDLONGID:24}" --verify linux-"$KERNEL_VERSION".tar.sign
 
   fi
 
@@ -229,16 +243,25 @@ function VerifyExtract()
 
 # --------------CONFIG------------------
 
+#Create the kernel config including patches
+
+function PatchKernelConfig()
+{
+  pushd ./linux-"$KERNEL_VERSION"
+  mv ../kernel_config.sh .
+
+  # Copy config from wheezy-backports as Jessie is frozen
+  curl -o .config "http://anonscm.debian.org/viewvc/kernel/dists/wheezy-backports/linux/debian/config/config?view=co"
+  ./kernel_config.sh
+
+  popd
+}
+
+
 # Copies the configuration of the running kernel and applies defaults to all settings that are new in the upstream version.
 function SetCurrentConfig()
 {
   pushd ./linux-"$KERNEL_VERSION"
-
-  # Copy settings of the currently running kernel
-  cp "$BUILD_DIR"/kernel_config ./.config
-
-  # Debuginfo is only needed if you plan to use binary object tools like crash, kgdb, and SystemTap on the kernel.
-  scripts/config --disable DEBUG_INFO
 
   # Use the copied configuration and apply defaults to all new settings
   yes "" | make oldconfig
@@ -256,21 +279,19 @@ function SetCurrentConfig()
 
 function InstallGrsecurity()
 {
-  pushd ./linux-$KERNEL_VERSION
+  pushd ./linux-"$KERNEL_VERSION"
 
   echo "Patch located at $LATEST_GRSEC_PATCH, downloading"
-  curl -o grsecurity.patch "$LATEST_GRSEC_PATCH"
-  curl -o grsecurity.patch.sig "$LATEST_GRSEC_PATCH.sig"
-
-  ls -laR $GNUPGHOME
+  curl -o ../kpatch/grsecurity.patch "$LATEST_GRSEC_PATCH"
+  curl -o ../kpatch/grsecurity.patch.sig "$LATEST_GRSEC_PATCH.sig"
 
   gpg --keyserver "$KEYSERVER" --recv-keys "$GRSEC_KEY"
 
   echo "Verifying patch is signed with the trusted key..."
-  gpg -v --trusted-key 0x${GRSEC_TRUSTEDLONGID:24} --verify grsecurity.patch.sig
+  gpg -v --trusted-key "0x${GRSEC_TRUSTEDLONGID:24}" --verify ../kpatch/grsecurity.patch.sig
 
-  echo "Patching kernel"
-  patch -p1 < grsecurity.patch
+  echo "Patching kernel for GRSecurity..."
+  patch -p1 < ../kpatch/grsecurity.patch
   echo "Patch done"
 
   popd
@@ -343,6 +364,7 @@ if [ "$GRSEC" = "true" ]; then
   InstallGrsecurity;
 fi
 
+PatchKernelConfig
 SetCurrentConfig
 Build
 

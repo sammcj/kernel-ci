@@ -1,9 +1,0 @@
-dependencies:
-  pre:
-    - gem install package_cloud
-
-deployment:
-  production:
-    branch: master
-    commands:
-        - sudo package_cloud push mrmondo/debian-kernel/debian/jessie ~/kernel-ci/linux-image*.deb
