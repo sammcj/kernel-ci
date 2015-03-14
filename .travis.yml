@@ -3,9 +3,6 @@ language: c
 before_install:
   - gem install package_cloud
 
-install:
-  # - sudo apt-get -y update
-  - sudo apt-get -y install make
-
 script:
-  - sudo make no_docker_build
+  - sudo sed -i -e 's/^Defaults\tsecure_path.*$//' /etc/sudoers
+  - sudo -E ./buildkernel.sh

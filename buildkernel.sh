@@ -23,6 +23,10 @@ set -xe
 
 # Optional variables that may be passed to this script:
 
+# APT_UPDATE
+# Performs an apt-get update and upgrade before build
+# DEFAULT VALUE: "true"
+
 # KERNEL_VERSION
 # DEFAULT VALUE: Latest STABLE kernel version
 #
@@ -62,6 +66,27 @@ set -xe
 # the hardware is not expected to change.
 # DEFAULT VALUE: "false"
 
+### GRSECURITY ###
+
+# GRSEC
+# Enable GRSecurity Patching
+# DEFAULT VALUE: "false"
+
+# GRSEC_RSS
+# Source of GRSecurity patch RSS feed
+# DEFAULT VALUE: "https://grsecurity.net/testing_rss.php"
+
+# GRSEC_KEY
+# Currently using The PaX Team <pageexec at freemail dot hu> public key
+# See http://sks.pkqs.net/pks/lookup?op=vindex&fingerprint=on&search=0x44D1C0F82525FE49
+# DEFAULT VALUE: "2525FE49"
+
+# GRSEC_TRUSTED_FINGERPRINT
+# Fingerprint of a trusted key the GRSecurity patch is signed with
+# See https://grsecurity.net/download.php
+# ATTENTION: Make sure you really trust it!
+# DEFAULT VALUE: "DE94 52CE 46F4 2094 907F 108B 44D1 C0F8 2525 FE49"
+
 ### POST PROCESSING ###
 
 # PACKAGECLOUD
@@ -76,7 +101,7 @@ set -xe
 # Enable pushing to reprepro upon successful build
 # DEFAULT VALUE: "false"
 
-# REREPRO_HOST
+# REPREPRO_HOST
 # The username and password to login to the reprepro host
 # DEFAULT VALUE: "ci@aptproxy"
 
@@ -86,19 +111,31 @@ set -xe
 
 # -------------VARIABLES---------------
 
+APT_UPDATE=${APT_UPDATE:-"true"}
 TRUSTED_FINGERPRINT=${TRUSTED_FINGERPRINT:-"C75D C40A 11D7 AF88 9981  ED5B C86B A06A 517D 0F0E"}
 VERSION_POSTFIX=${VERSION_POSTFIX:-"-ci"}
 SOURCE_URL_BASE=${SOURCE_URL_BASE:-"https://kernel.org/pub/linux/kernel/v3.x"}
 KEYSERVER=${KEYSERVER:-"hkp://keys.gnupg.net"}
 KERNEL_ORG_KEY=${KERNEL_ORG_KEY:-"6092693E"}
 BUILD_ONLY_LOADED_MODULES=${BUILD_ONLY_LOADED_MODULES:-"false"}
-PACKAGECLOUD=${PACKAGECLOUD:-"true"}
+PACKAGECLOUD=${PACKAGECLOUD:-"false"}
 REPREPRO=${REPREPRO:-"false"}
 PACKAGE_CLOUD_URL=${PACKAGE_CLOUD_URL:-"mrmondo/debian-kernel/debian/jessie"}
-REREPRO_HOST=${REREPRO_HOST:-"ci@aptproxy"}
+REPREPRO_HOST=${REPREPRO_HOST:-"ci@aptproxy"}
 REPREPO_URL=${REPREPO_URL:-"var/vhost/mycoolaptmirror.com/html"}
+GRSEC=${GRSEC:-"false"}
+GRSEC_RSS=${GRSEC_RSS:-"https://grsecurity.net/testing_rss.php"}
+GRSEC_TRUSTED_FINGERPRINT=${GRSEC_TRUSTED_FINGERPRINT:="DE94 52CE 46F4 2094 907F 108B 44D1 C0F8 2525 FE49"}
+GRSEC_KEY=${GRSEC_KEY:="2525FE49"}
+GCC_VERSION="$(gcc -dumpversion|awk -F "." '{print $1"."$2}')"
 
-if [ -z "$KERNEL_VERSION" ]; then
+if [ "$GRSEC" = "true" ]; then
+  # Get the latest grsec patch
+  LATEST_GRSEC_PATCH="$(curl ${GRSEC_RSS}|egrep -o 'https[^ ]*.patch'|sort|uniq|head -1)"
+  LATEST_GRSEC_KERNEL_VERSION="$(echo $LATEST_GRSEC_PATCH|cut -f 3 -d -;)"
+  KERNEL_VERSION="$LATEST_GRSEC_KERNEL_VERSION"
+  GRSEC_TRUSTEDLONGID=$(echo "$GRSEC_TRUSTED_FINGERPRINT" |  sed "s/ //g")
+else
   KERNEL_VERSION=$(curl --silent https://www.kernel.org/finger_banner | awk '{print $11}'| head -2|tail -1)
 fi
 
@@ -114,12 +151,12 @@ CheckFreeSpace() {
 
 echo "$(getconf _NPROCESSORS_ONLN) CPU cores detected"
 
-# Use aria2 crather than wget if installed
+# Use aria2 crather than curl if installed
 DownloadManager() {
   if hash aria2c 2>/dev/null; then
     aria2c "$@";
   else
-    wget "$@";
+    curl -O "$@";
   fi
 }
 
@@ -132,8 +169,17 @@ BuildEnv() {
   else
     echo "Not running in Docker"
     export BUILD_DIR=$(pwd)
+    apt-get -y install "gcc-$GCC_VERSION-plugin-dev" coreutils fakeroot build-essential kernel-package wget xz-utils gnupg bc devscripts apt-utils initramfs-tools time aria2
+    apt-get clean
   fi
 }
+
+if [ "$APT_UPDATE" = "true" ]; then
+  echo "Performing apt-get update..."
+  apt-get -qq update
+  echo "Performing apt-get upgrade..."
+  apt-get -qq upgrade
+fi
 
 # --------------DOWNLOAD------------------
 
@@ -141,7 +187,7 @@ BuildEnv() {
 TRUSTEDLONGID=$(echo "$TRUSTED_FINGERPRINT" |  sed "s/ //g")
 
 # Directory that is used by this script to store the trusted GPG-Key (not your personal GPG directory!)
-export GNUPGHOME=./kernelkey
+export GNUPGHOME="$BUILD_DIR/kernelkey"
 
 # Downloads the trusted key from a keyserver. Uses the trusted fingerprint to find the key.
 function RecvKey()
@@ -206,6 +252,30 @@ function SetCurrentConfig()
   popd
 }
 
+# --------------PATCH------------------
+
+function InstallGrsecurity()
+{
+  pushd ./linux-$KERNEL_VERSION
+
+  echo "Patch located at $LATEST_GRSEC_PATCH, downloading"
+  curl -o grsecurity.patch "$LATEST_GRSEC_PATCH"
+  curl -o grsecurity.patch.sig "$LATEST_GRSEC_PATCH.sig"
+
+  ls -laR $GNUPGHOME
+
+  gpg --keyserver "$KEYSERVER" --recv-keys "$GRSEC_KEY"
+
+  echo "Verifying patch is signed with the trusted key..."
+  gpg -v --trusted-key 0x${GRSEC_TRUSTEDLONGID:24} --verify grsecurity.patch.sig
+
+  echo "Patching kernel"
+  patch -p1 < grsecurity.patch
+  echo "Patch done"
+
+  popd
+}
+
 # --------------BUILD------------------
 
 function Build()
@@ -214,12 +284,13 @@ function Build()
 
   echo "Now building the kernel, this will take a while..."
   time fakeroot make-kpkg --jobs "$(getconf _NPROCESSORS_ONLN)" --append-to-version "$VERSION_POSTFIX" --initrd kernel_image
-
+  time fakeroot make-kpkg --jobs "$(getconf _NPROCESSORS_ONLN)" --append-to-version "$VERSION_POSTFIX" --initrd kernel_headers
   popd
 
   PACKAGE_NAME="$(ls -m1 linux-image*.deb)"
+  HEADERS_PACKAGE_NAME="$(ls -m1 linux-headers*.deb)"
   echo "Congratulations! You just build a linux kernel."
-  echo "Use the following command to install it: dpkg -i $PACKAGE_NAME"
+  echo "Use the following command to install it: dpkg -i $PACKAGE_NAME $HEADERS_PACKAGE_NAME"
 }
 
 # Generates MD5sum of package
@@ -239,11 +310,11 @@ function RepreproPush()
   pwd
   pushd ./linux-"$KERNEL_VERSION"
 
-  scp "$PACKAGE_NAME" "$REREPRO_HOST":/var/tmp
-  ssh "$REREPRO_HOST" reprepro -A all -Vb "$REPREPO_URL" /var/tmp/"$PACKAGE_NAME"
+  scp "$PACKAGE_NAME $HEADERS_PACKAGE_NAME" "$REPREPRO_HOST":/var/tmp
+  ssh "$REPREPRO_HOST" reprepro -A all -Vb "$REPREPO_URL" /var/tmp/"$PACKAGE_NAME"
   popd
 
-  echo "Image pushed to $REREPRO_HOST and imported to reprepro"
+  echo "Image pushed to $REPREPRO_HOST and imported to reprepro"
 }
 
 # Pushes the package to packagecloud.io
@@ -251,8 +322,11 @@ function PackageCloud()
 {
   pwd && ls -l
 
-  package_cloud yank $PACKAGE_CLOUD_URL $PACKAGE_NAME || true
-  package_cloud push $PACKAGE_CLOUD_URL $PACKAGE_NAME
+  package_cloud yank "$PACKAGE_CLOUD_URL" "$PACKAGE_NAME" || true
+  package_cloud push "$PACKAGE_CLOUD_URL" "$PACKAGE_NAME"
+
+  package_cloud yank "$PACKAGE_CLOUD_URL" "$HEADERS_PACKAGE_NAME" || true
+  package_cloud push "$PACKAGE_CLOUD_URL" "$HEADERS_PACKAGE_NAME"
 
 }
 
@@ -264,6 +338,11 @@ BuildEnv
 RecvKey
 DownloadSources
 VerifyExtract
+
+if [ "$GRSEC" = "true" ]; then
+  InstallGrsecurity;
+fi
+
 SetCurrentConfig
 Build
 
