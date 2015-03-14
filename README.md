@@ -27,8 +27,6 @@
 
 ---
 
-**Note: Issue #1 means that source key checking is not currently enabled**
-
 ## Usage
 ### Docker
 ```bash
