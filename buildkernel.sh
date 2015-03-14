@@ -146,7 +146,7 @@ function RecvKey()
   mkdir "$GNUPGHOME"
   chmod og-rwx "$GNUPGHOME"
   # gpg --keyserver "$KEYSERVER" --recv-keys "$TRUSTEDLONGID"
-  gpg --keyserver "$KEYSERVER" --recv-keys 517D0F0E
+  gpg --keyserver "$KEYSERVER" --recv-keys 6092693E
 }
 
 # Downloads the sources and their signature file.
