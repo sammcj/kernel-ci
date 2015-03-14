@@ -36,7 +36,7 @@ set -xe
 #     http://lwn.net/Articles/461647/
 #     https://www.kernel.org/doc/wot/torvalds.html
 # ATTENTION: Make sure you really trust it!
-# DEFAULT VALUE: "ABAF 11C6 5A29 70B1 30AB E3C4 79BE 3E43 0041 1886"
+# DEFAULT VALUE: "C75D C40A 11D7 AF88 9981  ED5B C86B A06A 517D 0F0E"
 
 # CHECK_KEY
 # Enables fingerprint checking (recommended)
@@ -82,7 +82,7 @@ set -xe
 
 # -------------VARIABLES---------------
 
-TRUSTED_FINGERPRINT='ABAF 11C6 5A29 70B1 30AB E3C4 79BE 3E43 0041 1886'
+TRUSTED_FINGERPRINT='C75D C40A 11D7 AF88 9981  ED5B C86B A06A 517D 0F0E'
 VERSION_POSTFIX=${VERSION_POSTFIX-"-ci"}
 SOURCE_URL_BASE=${SOURCE_URL_BASE-"https://kernel.org/pub/linux/kernel/v3.x"}
 KEYSERVER=hkp://keys.gnupg.net
@@ -166,7 +166,7 @@ function VerifyExtract()
   then
 
     echo "Verifying tar is signed with the trusted key..."
-    gpg -v --trusted-key 517D0F0E --verify linux-"$KERNEL_VERSION".tar.sign
+    gpg -v --trusted-key 0x${TRUSTEDLONGID:24} --verify linux-"$KERNEL_VERSION".tar.sign
 
   fi
 
