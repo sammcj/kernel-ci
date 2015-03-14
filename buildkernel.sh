@@ -145,7 +145,8 @@ function RecvKey()
   [ ! -d "$GNUPGHOME" ] || rm -rf "$GNUPGHOME" # makes sure no stale keys are hanging around
   mkdir "$GNUPGHOME"
   chmod og-rwx "$GNUPGHOME"
-  gpg --keyserver "$KEYSERVER" --recv-keys "$TRUSTEDLONGID" 517D0F0E
+  # gpg --keyserver "$KEYSERVER" --recv-keys "$TRUSTEDLONGID"
+  gpg --keyserver "$KEYSERVER" --recv-keys 517D0F0E
 }
 
 # Downloads the sources and their signature file.
