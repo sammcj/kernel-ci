@@ -166,7 +166,7 @@ function VerifyExtract()
   then
 
     echo "Verifying tar is signed with the trusted key..."
-    gpg -v --trusted-key 0x${TRUSTEDLONGID:24} --verify linux-"$KERNEL_VERSION".tar.sign
+    gpg -v --trusted-key 517D0F0E --verify linux-"$KERNEL_VERSION".tar.sign
 
   fi
 
