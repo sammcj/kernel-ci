@@ -37,6 +37,10 @@ set -xe
 # ATTENTION: Make sure you really trust it!
 # DEFAULT VALUE: "ABAF 11C6 5A29 70B1 30AB  E3C4 79BE 3E43 0041 1886"
 
+# CHECK_KEY
+# Enables fingerprint checking (recommended)
+# DEFAULT VALUE: "true"
+
 # SOURCE_URL_BASE
 # Where the archive and sources are located
 # DEFAULT VALUE: "https://kernel.org/pub/linux/kernel/v3.x"
@@ -51,7 +55,7 @@ set -xe
 # loaded will be missing!  Only usefull if you really have to speed up
 # the build time and the kernel is intended for the running system and
 # the hardware is not expected to change.
-# DEFAULT VALUE: "no"
+# DEFAULT VALUE: "false"
 
 ### POST PROCESSING ###
 
@@ -156,9 +160,13 @@ function VerifyExtract()
   echo "Extracting downloaded sources to tar..."
   [ -f linux-"$KERNEL_VERSION".tar ] || unxz --keep linux-"$KERNEL_VERSION".tar.xz
 
-  #Commented out as often fails for no reason - would be nice to have see issue #1
-  #echo "Verifying tar is signed with the trusted key..."
-  #gpg -v --trusted-key 0x${TRUSTEDLONGID:24} --verify linux-"$KERNEL_VERSION".tar.sign
+  if [ "$CHECK_KEY" != "false" ]
+  then
+
+    echo "Verifying tar is signed with the trusted key..."
+    gpg -v --trusted-key 0x${TRUSTEDLONGID:24} --verify linux-"$KERNEL_VERSION".tar.sign
+
+  fi
 
   [ ! -d linux-"$KERNEL_VERSION" ] || rm -rf linux-"$KERNEL_VERSION"
 
@@ -183,7 +191,7 @@ function SetCurrentConfig()
   # Use the copied configuration and apply defaults to all new settings
   yes "" | make oldconfig
 
-  if [ yes == "$BUILD_ONLY_LOADED_MODULES" ]
+  if [ "$BUILD_ONLY_LOADED_MODULES" = "true" ]
   then
     echo "Disabling modules that are not loaded by the running system..."
     make localmodconfig
@@ -237,8 +245,8 @@ function PackageCloud()
 {
   pwd && ls -l
 
-  package_cloud yank mrmondo/debian-kernel/debian/jessie $PACKAGE_NAME || true
-  package_cloud push mrmondo/debian-kernel/debian/jessie $PACKAGE_NAME
+  package_cloud yank $PACKAGE_CLOUD_URL $PACKAGE_NAME || true
+  package_cloud push $PACKAGE_CLOUD_URL $PACKAGE_NAME
 
 }
 
