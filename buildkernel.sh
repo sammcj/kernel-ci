@@ -30,6 +30,10 @@ set -xe
 # For restrictions see the --append-to-version option of make-kpg.c
 # DEFAULT VALUE: "-ci"
 
+# SOURCE_URL_BASE
+# Where the archive and sources are located
+# DEFAULT VALUE: "https://kernel.org/pub/linux/kernel/v3.x"
+
 # TRUSTED_FINGERPRINT
 # Fingerprint of a trusted key the kernel is signed with
 # See http://www.kernel.org/signature.html
@@ -42,13 +46,13 @@ set -xe
 # Enables fingerprint checking (recommended)
 # DEFAULT VALUE: "true"
 
-# SOURCE_URL_BASE
-# Where the archive and sources are located
-# DEFAULT VALUE: "https://kernel.org/pub/linux/kernel/v3.x"
-
 # KEYSERVER
 # Server used to get the trusted key from.
 # DEFAULT VALUE: "hkp://keys.gnupg.net"
+
+# KERNEL_ORG_KEY
+# Currently using Greg Kroah-Hartman's public key
+# DEFAULT VALUE: "6092693E"
 
 # BUILD_ONLY_LOADED_MODULES
 # Set to yes if you want to build only the modules that are currently
@@ -85,7 +89,8 @@ set -xe
 TRUSTED_FINGERPRINT='C75D C40A 11D7 AF88 9981  ED5B C86B A06A 517D 0F0E'
 VERSION_POSTFIX=${VERSION_POSTFIX-"-ci"}
 SOURCE_URL_BASE=${SOURCE_URL_BASE-"https://kernel.org/pub/linux/kernel/v3.x"}
-KEYSERVER=hkp://keys.gnupg.net
+KEYSERVER={KEYSERVER-"hkp://keys.gnupg.net"}
+KERNEL_ORG_KEY={KERNEL_ORG_KEY-"6092693E"}
 BUILD_ONLY_LOADED_MODULES=${BUILD_ONLY_LOADED_MODULES-"no"}
 PACKAGECLOUD=${PACKAGECLOUD-"true"}
 REPREPRO=${REPREPRO-"false"}
@@ -145,8 +150,7 @@ function RecvKey()
   [ ! -d "$GNUPGHOME" ] || rm -rf "$GNUPGHOME" # makes sure no stale keys are hanging around
   mkdir "$GNUPGHOME"
   chmod og-rwx "$GNUPGHOME"
-  # gpg --keyserver "$KEYSERVER" --recv-keys "$TRUSTEDLONGID"
-  gpg --keyserver "$KEYSERVER" --recv-keys 6092693E
+  gpg --keyserver "$KEYSERVER" --recv-keys "$KERNEL_ORG_KEY"
 }
 
 # Downloads the sources and their signature file.
