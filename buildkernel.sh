@@ -34,8 +34,9 @@ set -xe
 # Fingerprint of a trusted key the kernel is signed with
 # See http://www.kernel.org/signature.html
 #     http://lwn.net/Articles/461647/
+#     https://www.kernel.org/doc/wot/torvalds.html
 # ATTENTION: Make sure you really trust it!
-# DEFAULT VALUE: "ABAF 11C6 5A29 70B1 30AB  E3C4 79BE 3E43 0041 1886"
+# DEFAULT VALUE: "ABAF 11C6 5A29 70B1 30AB E3C4 79BE 3E43 0041 1886"
 
 # CHECK_KEY
 # Enables fingerprint checking (recommended)
@@ -47,7 +48,7 @@ set -xe
 
 # KEYSERVER
 # Server used to get the trusted key from.
-# DEFAULT VALUE: "hkp://pool.sks-keyservers.net"
+# DEFAULT VALUE: "hkp://keys.gnupg.net"
 
 # BUILD_ONLY_LOADED_MODULES
 # Set to yes if you want to build only the modules that are currently
@@ -81,10 +82,10 @@ set -xe
 
 # -------------VARIABLES---------------
 
-TRUSTED_FINGERPRINT='ABAF 11C6 5A29 70B1 30AB  E3C4 79BE 3E43 0041 1886'
+TRUSTED_FINGERPRINT='ABAF 11C6 5A29 70B1 30AB E3C4 79BE 3E43 0041 1886'
 VERSION_POSTFIX=${VERSION_POSTFIX-"-ci"}
 SOURCE_URL_BASE=${SOURCE_URL_BASE-"https://kernel.org/pub/linux/kernel/v3.x"}
-KEYSERVER=hkp://pool.sks-keyservers.net
+KEYSERVER=hkp://keys.gnupg.net
 BUILD_ONLY_LOADED_MODULES=${BUILD_ONLY_LOADED_MODULES-"no"}
 PACKAGECLOUD=${PACKAGECLOUD-"true"}
 REPREPRO=${REPREPRO-"false"}
@@ -144,7 +145,7 @@ function RecvKey()
   [ ! -d "$GNUPGHOME" ] || rm -rf "$GNUPGHOME" # makes sure no stale keys are hanging around
   mkdir "$GNUPGHOME"
   chmod og-rwx "$GNUPGHOME"
-  gpg --keyserver "$KEYSERVER" --recv-keys "$TRUSTEDLONGID"
+  gpg --keyserver "$KEYSERVER" --recv-keys "$TRUSTEDLONGID" 517D0F0E
 }
 
 # Downloads the sources and their signature file.
