@@ -86,17 +86,17 @@ set -xe
 
 # -------------VARIABLES---------------
 
-TRUSTED_FINGERPRINT='C75D C40A 11D7 AF88 9981  ED5B C86B A06A 517D 0F0E'
-VERSION_POSTFIX=${VERSION_POSTFIX-"-ci"}
-SOURCE_URL_BASE=${SOURCE_URL_BASE-"https://kernel.org/pub/linux/kernel/v3.x"}
-KEYSERVER=${KEYSERVER-"hkp://keys.gnupg.net"}
-KERNEL_ORG_KEY=${KERNEL_ORG_KEY-"6092693E"}
-BUILD_ONLY_LOADED_MODULES=${BUILD_ONLY_LOADED_MODULES-"no"}
-PACKAGECLOUD=${PACKAGECLOUD-"true"}
-REPREPRO=${REPREPRO-"false"}
-PACKAGE_CLOUD_URL=${PACKAGE_CLOUD_URL-"mrmondo/debian-kernel/debian/jessie"}
-REREPRO_HOST=${REREPRO_HOST-"ci@aptproxy"}
-REPREPO_URL=${REPREPO_URL-"var/vhost/mycoolaptmirror.com/html"}
+TRUSTED_FINGERPRINT=${TRUSTED_FINGERPRINT:-"C75D C40A 11D7 AF88 9981  ED5B C86B A06A 517D 0F0E"}
+VERSION_POSTFIX=${VERSION_POSTFIX:-"-ci"}
+SOURCE_URL_BASE=${SOURCE_URL_BASE:-"https://kernel.org/pub/linux/kernel/v3.x"}
+KEYSERVER=${KEYSERVER:-"hkp://keys.gnupg.net"}
+KERNEL_ORG_KEY=${KERNEL_ORG_KEY:-"6092693E"}
+BUILD_ONLY_LOADED_MODULES=${BUILD_ONLY_LOADED_MODULES:-"false"}
+PACKAGECLOUD=${PACKAGECLOUD:-"true"}
+REPREPRO=${REPREPRO:-"false"}
+PACKAGE_CLOUD_URL=${PACKAGE_CLOUD_URL:-"mrmondo/debian-kernel/debian/jessie"}
+REREPRO_HOST=${REREPRO_HOST:-"ci@aptproxy"}
+REPREPO_URL=${REPREPO_URL:-"var/vhost/mycoolaptmirror.com/html"}
 
 if [ -z "$KERNEL_VERSION" ]; then
   KERNEL_VERSION=$(curl --silent https://www.kernel.org/finger_banner | awk '{print $11}'| head -2|tail -1)
