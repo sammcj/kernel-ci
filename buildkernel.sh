@@ -30,20 +30,29 @@ set -xe
 # For restrictions see the --append-to-version option of make-kpg.c
 # DEFAULT VALUE: "-ci"
 
-# TRUSTED_FINGERPRINT
-# Fingerprint of a trusted key the kernel is signed with
-# See http://www.kernel.org/signature.html
-#     http://lwn.net/Articles/461647/
-# ATTENTION: Make sure you really trust it!
-# DEFAULT VALUE: "ABAF 11C6 5A29 70B1 30AB  E3C4 79BE 3E43 0041 1886"
-
 # SOURCE_URL_BASE
 # Where the archive and sources are located
 # DEFAULT VALUE: "https://kernel.org/pub/linux/kernel/v3.x"
 
+# TRUSTED_FINGERPRINT
+# Fingerprint of a trusted key the kernel is signed with
+# See http://www.kernel.org/signature.html
+#     http://lwn.net/Articles/461647/
+#     https://www.kernel.org/doc/wot/torvalds.html
+# ATTENTION: Make sure you really trust it!
+# DEFAULT VALUE: "C75D C40A 11D7 AF88 9981  ED5B C86B A06A 517D 0F0E"
+
+# CHECK_KEY
+# Enables fingerprint checking (recommended)
+# DEFAULT VALUE: "true"
+
 # KEYSERVER
 # Server used to get the trusted key from.
-# DEFAULT VALUE: "hkp://pool.sks-keyservers.net"
+# DEFAULT VALUE: "hkp://keys.gnupg.net"
+
+# KERNEL_ORG_KEY
+# Currently using Greg Kroah-Hartman's public key
+# DEFAULT VALUE: "6092693E"
 
 # BUILD_ONLY_LOADED_MODULES
 # Set to yes if you want to build only the modules that are currently
@@ -51,7 +60,7 @@ set -xe
 # loaded will be missing!  Only usefull if you really have to speed up
 # the build time and the kernel is intended for the running system and
 # the hardware is not expected to change.
-# DEFAULT VALUE: "no"
+# DEFAULT VALUE: "false"
 
 ### POST PROCESSING ###
 
@@ -77,10 +86,11 @@ set -xe
 
 # -------------VARIABLES---------------
 
-TRUSTED_FINGERPRINT='ABAF 11C6 5A29 70B1 30AB  E3C4 79BE 3E43 0041 1886'
+TRUSTED_FINGERPRINT='C75D C40A 11D7 AF88 9981  ED5B C86B A06A 517D 0F0E'
 VERSION_POSTFIX=${VERSION_POSTFIX-"-ci"}
 SOURCE_URL_BASE=${SOURCE_URL_BASE-"https://kernel.org/pub/linux/kernel/v3.x"}
-KEYSERVER=hkp://pool.sks-keyservers.net
+KEYSERVER={KEYSERVER-"hkp://keys.gnupg.net"}
+KERNEL_ORG_KEY={KERNEL_ORG_KEY-"6092693E"}
 BUILD_ONLY_LOADED_MODULES=${BUILD_ONLY_LOADED_MODULES-"no"}
 PACKAGECLOUD=${PACKAGECLOUD-"true"}
 REPREPRO=${REPREPRO-"false"}
@@ -140,7 +150,7 @@ function RecvKey()
   [ ! -d "$GNUPGHOME" ] || rm -rf "$GNUPGHOME" # makes sure no stale keys are hanging around
   mkdir "$GNUPGHOME"
   chmod og-rwx "$GNUPGHOME"
-  gpg --keyserver "$KEYSERVER" --recv-keys "$TRUSTEDLONGID"
+  gpg --keyserver "$KEYSERVER" --recv-keys "$KERNEL_ORG_KEY"
 }
 
 # Downloads the sources and their signature file.
@@ -156,9 +166,13 @@ function VerifyExtract()
   echo "Extracting downloaded sources to tar..."
   [ -f linux-"$KERNEL_VERSION".tar ] || unxz --keep linux-"$KERNEL_VERSION".tar.xz
 
-  #Commented out as often fails for no reason - would be nice to have see issue #1
-  #echo "Verifying tar is signed with the trusted key..."
-  #gpg -v --trusted-key 0x${TRUSTEDLONGID:24} --verify linux-"$KERNEL_VERSION".tar.sign
+  if [ "$CHECK_KEY" != "false" ]
+  then
+
+    echo "Verifying tar is signed with the trusted key..."
+    gpg -v --trusted-key 0x${TRUSTEDLONGID:24} --verify linux-"$KERNEL_VERSION".tar.sign
+
+  fi
 
   [ ! -d linux-"$KERNEL_VERSION" ] || rm -rf linux-"$KERNEL_VERSION"
 
@@ -183,7 +197,7 @@ function SetCurrentConfig()
   # Use the copied configuration and apply defaults to all new settings
   yes "" | make oldconfig
 
-  if [ yes == "$BUILD_ONLY_LOADED_MODULES" ]
+  if [ "$BUILD_ONLY_LOADED_MODULES" = "true" ]
   then
     echo "Disabling modules that are not loaded by the running system..."
     make localmodconfig
@@ -237,8 +251,8 @@ function PackageCloud()
 {
   pwd && ls -l
 
-  package_cloud yank mrmondo/debian-kernel/debian/jessie $PACKAGE_NAME || true
-  package_cloud push mrmondo/debian-kernel/debian/jessie $PACKAGE_NAME
+  package_cloud yank $PACKAGE_CLOUD_URL $PACKAGE_NAME || true
+  package_cloud push $PACKAGE_CLOUD_URL $PACKAGE_NAME
 
 }
 
