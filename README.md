@@ -34,6 +34,7 @@ After a successfully building the kernel package, the kernel will be copied to /
 ### Build Kernel Deb Without Docker
 ```bash
 EXPORT BUILD_DIR=/home/ci #Repo location - Defaults to $HOME
+sudo sed -i -e 's/^Defaults\tsecure_path.*$//' /etc/sudoers
 sudo -E buildkernel.sh
 ```
 
