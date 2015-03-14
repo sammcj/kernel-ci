@@ -4,6 +4,7 @@
 
 * Uploads publicly accessable Debian Kernel Packages to [packagecloud.io](https://packagecloud.io/mrmondo/debian-kernel?filter=debs)
 * Includes Kernel Watcher that detects new stable kernel releases and triggers builds.
+* Supports patching the Kernel with GRSecurity
 * Tested with Gitlab-CI and Travis-CI but should work on any CI system.
 * Runs in an isolated and disposble docker container.
 * No root access required when building with Docker.
@@ -15,11 +16,8 @@
 <!-- MarkdownTOC -->
 
 - [Usage](#usage)
-  - [Docker](#docker)
-  - [Build Kernel Deb Without Docker](#build-kernel-deb-without-docker)
 - [Public CI Builds](#public-ci-builds)
 - [Optional Configuration](#optional-configuration)
-  - [Post Processing Options](#post-processing-options)
 - [TODO:](#todo)
 - [Example Output](#example-output)
 
@@ -36,7 +34,7 @@ After a successfully building the kernel package, the kernel will be copied to /
 ### Build Kernel Deb Without Docker
 ```bash
 EXPORT BUILD_DIR=/home/ci #Repo location - Defaults to $HOME
-sudo make no_docker_build
+sudo -E buildkernel.sh
 ```
 
 ## Public CI Builds
@@ -49,18 +47,20 @@ You may add the repository for them by running: `curl https://packagecloud.io/in
 ## Optional Configuration
 The following optional environment variables can be configured as required
 
-* `KERNEL_VERSION`
+#### APT_UPDATE
+Perform an apt-get update and upgrade prior to building
 
+Default Value: `false`
+
+#### KERNEL_VERSION
 Default Value: Latest STABLE kernel version
 
-* `VERSION_POSTFIX`
-
+#### VERSION_POSTFIX
 For restrictions see the --append-to-version option of make-kpg.c
 
 Default Value: `-ci`
 
-* `TRUSTED_FINGERPRINT`
-
+#### TRUSTED_FINGERPRINT
 Fingerprint of a trusted key the kernel is signed with
 See http://www.kernel.org/signature.html
     http://lwn.net/Articles/461647/
@@ -69,20 +69,17 @@ ATTENTION: Make sure you really trust it!
 
 Default Value: `ABAF 11C6 5A29 70B1 30AB  E3C4 79BE 3E43 0041 1886`
 
-* `SOURCE_URL_BASE`
-
+#### SOURCE\_URL_BASE
 Where the archive and sources are located
 
 Default Value: `https://kernel.org/pub/linux/kernel/v3.x`
 
-* `KEYSERVER`
-
+#### KEYSERVER
 Server used to get the trusted key from.
 
 Default Value: `hkp://pool.sks-keyservers.net`
 
-* `BUILD_ONLY_LOADED_MODULES`
-
+#### BUILD\_ONLY\_LOADED_MODULES
 Set to yes if you want to build only the modules that are currently
 loaded Speeds up the build. But modules that are not currently
 loaded will be missing!  Only usefull if you really have to speed up
@@ -91,34 +88,57 @@ the hardware is not expected to change.
 
 Default Value: `no`
 
+### GRSecurity Patching
+_"Grsecurity is an extensive security enhancement to the Linux kernel that defends against a wide range of security threats through intelligent access control, memory corruption-based exploit prevention, and a host of other system hardening that generally require no configuration. It has been actively developed and maintained for the past 13 years. Commercial support for grsecurity is available through Open Source Security, Inc."_
+https://grsecurity.net
+
+#### GRSEC
+Enable GRSecurity Patching
+
+Default Value: `false`
+
+#### GRSEC_RSS
+Source of GRSecurity patch RSS feed
+
+Default Value: `https://grsecurity.net/testing_rss.php`
+
+#### GRSEC_KEY
+Currently using The PaX Team <pageexec at freemail dot hu> public key
+
+See http://sks.pkqs.net/pks/lookup?op=vindex&fingerprint=on&search=0x44D1C0F82525FE49
+
+Default Value: `2525FE49`
+
+#### GRSEC\_TRUSTED_FINGERPRINT
+Fingerprint of a trusted key the GRSecurity patch is signed with
+See https://grsecurity.net/download.php
+ATTENTION: Make sure you really trust it!
+
+Default Value: `DE94 52CE 46F4 2094 907F 108B 44D1 C0F8 2525 FE49`
+
 ### Post Processing Options
 
-* `PACKAGECLOUD`
-
+#### PACKAGECLOUD
 Enable pushing to reprepro upon successful build
 
 Default Value: `false`
 
-* `PACKAGE_CLOUD_URL`
-
+#### PACKAGE\_CLOUD_URL
 Must be replaced if you wish to upload to packagecloud.io
 
 Default Value: `mrmondo/debian-kernel/debian/jessie`
 
-* `REPREPRO`
-
+#### REPREPRO
 Enable pushing to reprepro upon successful build
 
 Default Value: `false`
 
-* `REREPRO_HOST`
-
+#### REREPRO_HOST
 The username and password to login to the reprepro host
 
 Default Value: `ci@aptproxy`
 
-* `REPREPO_URL`
-
+#### REPREPO_URL
 The URL of the reprepro mirror
 
 Default Value: `var/vhost/mycoolaptmirror.com/html`
