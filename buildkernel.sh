@@ -181,6 +181,8 @@ if [ "$APT_UPDATE" = "true" ]; then
   apt-get -qq upgrade
 fi
 
+mkdir -p kpatch
+
 # --------------DOWNLOAD------------------
 
 # Remove spaces from the fingerprint to get a "long key ID" (see gpg manpage)
@@ -229,13 +231,30 @@ function VerifyExtract()
 
 # --------------CONFIG------------------
 
+#Create the kernel config including patches
+
+function PatchKernelConfig()
+{
+  pushd ./kconfig
+
+  # Copy config from Debian trunk
+  curl -o debian-trunk "http://anonscm.debian.org/viewvc/kernel/dists/trunk/linux/debian/config/config?view=co"
+  patch -p0 < xen-guest.patch
+
+  if [ "$GRSEC" = "true" ]; then
+    patch -p0 < grsecurity.patch
+  fi
+
+  popd
+}
+
+
 # Copies the configuration of the running kernel and applies defaults to all settings that are new in the upstream version.
 function SetCurrentConfig()
 {
   pushd ./linux-"$KERNEL_VERSION"
 
-  # Copy settings of the currently running kernel
-  cp "$BUILD_DIR"/kernel_config ./.config
+  cp "$BUILD_DIR"/kconfig/debian-trunk ./.config
 
   # Debuginfo is only needed if you plan to use binary object tools like crash, kgdb, and SystemTap on the kernel.
   scripts/config --disable DEBUG_INFO
@@ -259,18 +278,16 @@ function InstallGrsecurity()
   pushd ./linux-$KERNEL_VERSION
 
   echo "Patch located at $LATEST_GRSEC_PATCH, downloading"
-  curl -o grsecurity.patch "$LATEST_GRSEC_PATCH"
-  curl -o grsecurity.patch.sig "$LATEST_GRSEC_PATCH.sig"
-
-  ls -laR $GNUPGHOME
+  curl -o ../kpatch/grsecurity.patch "$LATEST_GRSEC_PATCH"
+  curl -o ../kpatch/grsecurity.patch.sig "$LATEST_GRSEC_PATCH.sig"
 
   gpg --keyserver "$KEYSERVER" --recv-keys "$GRSEC_KEY"
 
   echo "Verifying patch is signed with the trusted key..."
-  gpg -v --trusted-key 0x${GRSEC_TRUSTEDLONGID:24} --verify grsecurity.patch.sig
+  gpg -v --trusted-key 0x${GRSEC_TRUSTEDLONGID:24} --verify ../kpatch/grsecurity.patch.sig
 
   echo "Patching kernel"
-  patch -p1 < grsecurity.patch
+  patch -p1 < ../kpatch/grsecurity.patch
   echo "Patch done"
 
   popd
@@ -343,6 +360,7 @@ if [ "$GRSEC" = "true" ]; then
   InstallGrsecurity;
 fi
 
+PatchKernelConfig
 SetCurrentConfig
 Build
 
