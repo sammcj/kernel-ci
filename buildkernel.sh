@@ -58,6 +58,10 @@ set -xe
 # Currently using Greg Kroah-Hartman's public key
 # DEFAULT VALUE: "6092693E"
 
+# STOCK_CONFIG
+# Currently using Debian Jessie 3.16 config
+# DEFAULT VALUE: "config-3.16.0-0.bpo.4-amd64"
+
 # BUILD_ONLY_LOADED_MODULES
 # Set to yes if you want to build only the modules that are currently
 # loaded Speeds up the build. But modules that are not currently
@@ -128,6 +132,7 @@ GRSEC_RSS=${GRSEC_RSS:-"https://grsecurity.net/testing_rss.php"}
 GRSEC_TRUSTED_FINGERPRINT=${GRSEC_TRUSTED_FINGERPRINT:="DE94 52CE 46F4 2094 907F 108B 44D1 C0F8 2525 FE49"}
 GRSEC_KEY=${GRSEC_KEY:="2525FE49"}
 GCC_VERSION="$(gcc -dumpversion|awk -F "." '{print $1"."$2}')"
+STOCK_CONFIG=${STOCK_CONFIG:="config-3.16.0-0.bpo.4-amd64"}
 
 if [ "$GRSEC" = "true" ]; then
   # Get the latest grsec patch
@@ -252,8 +257,8 @@ function PatchKernelConfig()
 
   # Copy config from wheezy-backports as Jessie is frozen
   rm -f ".config"
-  curl -o ".config" "http://anonscm.debian.org/viewvc/kernel/dists/wheezy-backports/linux/debian/config/config?view=co"
-  ls -la
+  mv ../"$STOCK_CONFIG" .config
+  # curl -o ".config" "http://anonscm.debian.org/viewvc/kernel/dists/wheezy-backports/linux/debian/config/config?view=co"
   ./kernel_config.sh
 
   popd
