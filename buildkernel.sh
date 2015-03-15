@@ -251,7 +251,9 @@ function PatchKernelConfig()
   mv ../kernel_config.sh .
 
   # Copy config from wheezy-backports as Jessie is frozen
-  curl -o .config "http://anonscm.debian.org/viewvc/kernel/dists/wheezy-backports/linux/debian/config/config?view=co"
+  rm -f ".config"
+  curl -o ".config" "http://anonscm.debian.org/viewvc/kernel/dists/wheezy-backports/linux/debian/config/config?view=co"
+  ls -la
   ./kernel_config.sh
 
   popd

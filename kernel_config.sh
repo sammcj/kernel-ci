@@ -44,8 +44,8 @@ scripts/config --disable DEBUG_INFO
 
 ### Virtualisation Helper ###
 
-scripts/config --enable CONFIG_UEVENT_HELPER
 scripts/config --set-str CONFIG_UEVENT_HELPER_PATH ""
+scripts/config --enable CONFIG_UEVENT_HELPER
 
 if [ "$GRSEC" = "true" ]; then
 

@@ -11,8 +11,9 @@
 * Tested with Gitlab-CI and Travis-CI but should work on any CI system.
 * Runs in an isolated and disposble docker container.
 * No root access required when building with Docker.
-* Both ther build and the kernels Work with Debian Wheezy (7) and Jessie (8).
+* Both the build and the kernels Work with Debian Wheezy (7) and Jessie (8).
 * Supports uploading built packages to a remote server and adding them to [reprepro](https://wiki.debian.org/SettingUpSignedAptRepositoryWithReprepro)
+* Allows advanced kernel configuration and options
 
 ---
 
@@ -48,6 +49,8 @@ You may add the repository for them by running: `curl https://packagecloud.io/in
 
 ## Optional Configuration
 The following optional environment variables can be configured as required
+
+* Advanced kernel options / configuration can be configured in [kernel_config.sh](https://github.com/sammcj/kernel-ci/blob/master/kernel_config.sh)
 
 #### APT_UPDATE
 Perform an apt-get update and upgrade prior to building
