@@ -1,5 +1,8 @@
 ![kernel_300](https://cloud.githubusercontent.com/assets/862951/6546050/53636040-c5f7-11e4-94d4-5e2dbfb8a27c.png)
 
+[![Build Status](https://img.shields.io/travis/sammcj/kernel-ci.svg?style=flat-square)](https://travis-ci.org/sammcj/kernel-ci) [![Issues](https://img.shields.io/github/issues/sammcj/kernel-ci.svg?style=flat-square)](https://github.com/sammcj/kernel-ci/issues)
+
+
 ### Linux Kernel CI for Debian
 
 * Uploads publicly accessable Debian Kernel Packages to [packagecloud.io](https://packagecloud.io/mrmondo/debian-kernel?filter=debs)
@@ -39,8 +42,6 @@ sudo -E buildkernel.sh
 ```
 
 ## Public CI Builds
-Travis Build: [![Build Status](https://travis-ci.org/sammcj/kernel-ci.svg?branch=master)](https://travis-ci.org/sammcj/kernel-ci)
-
 Successful builds from this project get uploaded to [PackageCloud.io](https://packagecloud.io/mrmondo/debian-kernel?filter=debs)
 
 You may add the repository for them by running: `curl https://packagecloud.io/install/repositories/mrmondo/debian-kernel/script.deb | sudo bash`
