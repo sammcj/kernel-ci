@@ -138,7 +138,7 @@ Enable pushing to reprepro upon successful build
 
 Default Value: `false`
 
-#### REREPRO_HOST
+#### REPREPRO_HOST
 The username and password to login to the reprepro host
 
 Default Value: `ci@aptproxy`
