@@ -109,7 +109,7 @@ set -xe
 # The username and password to login to the reprepro host
 # DEFAULT VALUE: "ci@aptproxy"
 
-# REPREPO_URL
+# REPREPRO_URL
 # The URL of the reprepro mirror
 # DEFAULT VALUE: "var/vhost/mycoolaptmirror.com/html"
 
@@ -126,7 +126,7 @@ PACKAGECLOUD=${PACKAGECLOUD:-"false"}
 REPREPRO=${REPREPRO:-"false"}
 PACKAGE_CLOUD_URL=${PACKAGE_CLOUD_URL:-"mrmondo/debian-kernel/debian/jessie"}
 REPREPRO_HOST=${REPREPRO_HOST:-"ci@aptproxy"}
-REPREPO_URL=${REPREPO_URL:-"var/vhost/mycoolaptmirror.com/html"}
+REPREPRO_URL=${REPREPRO_URL:-"var/vhost/mycoolaptmirror.com/html"}
 GRSEC=${GRSEC:-"false"}
 GRSEC_RSS=${GRSEC_RSS:-"https://grsecurity.net/testing_rss.php"}
 GRSEC_TRUSTED_FINGERPRINT=${GRSEC_TRUSTED_FINGERPRINT:="DE94 52CE 46F4 2094 907F 108B 44D1 C0F8 2525 FE49"}
@@ -339,7 +339,7 @@ function RepreproPush()
   pushd ./linux-"$KERNEL_VERSION"
 
   scp "$PACKAGE_NAME $HEADERS_PACKAGE_NAME" "$REPREPRO_HOST":/var/tmp
-  ssh "$REPREPRO_HOST" reprepro -A all -Vb "$REPREPO_URL" /var/tmp/"$PACKAGE_NAME"
+  ssh "$REPREPRO_HOST" reprepro -A all -Vb "$REPREPRO_URL" /var/tmp/"$PACKAGE_NAME"
   popd
 
   echo "Image pushed to $REPREPRO_HOST and imported to reprepro"
