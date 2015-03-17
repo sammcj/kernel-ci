@@ -47,6 +47,121 @@ scripts/config --disable DEBUG_INFO
 scripts/config --set-str CONFIG_UEVENT_HELPER_PATH ""
 scripts/config --enable CONFIG_UEVENT_HELPER
 
+### IPTABLES FOR 3.18+ ###
+
+#
+# IP: Netfilter Configuration
+#
+
+scripts/config  --enable CONFIG_NF_CONNTRACK_PROC_COMPAT=y
+
+
+scripts/config  --module CONFIG_NF_DEFRAG_IPV4 \
+                --module CONFIG_NF_CONNTRACK_IPV4 \
+                --module CONFIG_NF_LOG_ARP \
+                --module CONFIG_NF_LOG_IPV4 \
+                --module CONFIG_NF_TABLES_IPV4 \
+                --module CONFIG_NFT_CHAIN_ROUTE_IPV4 \
+                --module CONFIG_NF_REJECT_IPV4 \
+                --module CONFIG_NFT_REJECT_IPV4 \
+                --module CONFIG_NF_TABLES_ARP \
+                --module CONFIG_NF_NAT_IPV4 \
+                --module CONFIG_NFT_CHAIN_NAT_IPV4 \
+                --module CONFIG_NF_NAT_MASQUERADE_IPV4 \
+                --module CONFIG_NFT_MASQ_IPV4 \
+                --module CONFIG_NF_NAT_SNMP_BASIC \
+                --module CONFIG_NF_NAT_PROTO_GRE \
+                --module CONFIG_NF_NAT_PPTP \
+                --module CONFIG_NF_NAT_H323 \
+                --module CONFIG_IP_NF_IPTABLES \
+                --module CONFIG_IP_NF_MATCH_AH \
+                --module CONFIG_IP_NF_MATCH_ECN \
+                --module CONFIG_IP_NF_MATCH_RPFILTER \
+                --module CONFIG_IP_NF_MATCH_TTL \
+                --module CONFIG_IP_NF_FILTER \
+                --module CONFIG_IP_NF_TARGET_REJECT \
+                --module CONFIG_IP_NF_TARGET_SYNPROXY \
+                --module CONFIG_IP_NF_NAT \
+                --module CONFIG_IP_NF_TARGET_MASQUERADE \
+                --module CONFIG_IP_NF_TARGET_NETMAP \
+                --module CONFIG_IP_NF_TARGET_REDIRECT \
+                --module CONFIG_IP_NF_MANGLE \
+                --module CONFIG_IP_NF_TARGET_CLUSTERIP \
+                --module CONFIG_IP_NF_TARGET_ECN \
+                --module CONFIG_IP_NF_TARGET_TTL \
+                --module CONFIG_IP_NF_RAW \
+                --module CONFIG_IP_NF_SECURITY \
+                --module CONFIG_IP_NF_ARPTABLES \
+                --module CONFIG_IP_NF_ARPFILTER \
+                --module CONFIG_IP_NF_ARP_MANGLE
+
+#
+# IPv6: Netfilter Configuration
+#
+scripts/config  --module CONFIG_NF_DEFRAG_IPV6 \
+                --module CONFIG_NF_CONNTRACK_IPV6 \
+                --module CONFIG_NF_TABLES_IPV6 \
+                --module CONFIG_NFT_CHAIN_ROUTE_IPV6 \
+                --module CONFIG_NF_REJECT_IPV6 \
+                --module CONFIG_NFT_REJECT_IPV6 \
+                --module CONFIG_NF_LOG_IPV6 \
+                --module CONFIG_NF_NAT_IPV6 \
+                --module CONFIG_NFT_CHAIN_NAT_IPV6 \
+                --module CONFIG_NF_NAT_MASQUERADE_IPV6 \
+                --module CONFIG_NFT_MASQ_IPV6 \
+                --module CONFIG_IP6_NF_IPTABLES \
+                --module CONFIG_IP6_NF_MATCH_AH \
+                --module CONFIG_IP6_NF_MATCH_EUI64 \
+                --module CONFIG_IP6_NF_MATCH_FRAG \
+                --module CONFIG_IP6_NF_MATCH_OPTS \
+                --module CONFIG_IP6_NF_MATCH_HL \
+                --module CONFIG_IP6_NF_MATCH_IPV6HEADER \
+                --module CONFIG_IP6_NF_MATCH_MH \
+                --module CONFIG_IP6_NF_MATCH_RPFILTER \
+                --module CONFIG_IP6_NF_MATCH_RT \
+                --module CONFIG_IP6_NF_TARGET_HL \
+                --module CONFIG_IP6_NF_FILTER \
+                --module CONFIG_IP6_NF_TARGET_REJECT \
+                --module CONFIG_IP6_NF_TARGET_SYNPROXY \
+                --module CONFIG_IP6_NF_MANGLE \
+                --module CONFIG_IP6_NF_RAW \
+                --module CONFIG_IP6_NF_SECURITY \
+                --module CONFIG_IP6_NF_NAT \
+                --module CONFIG_IP6_NF_TARGET_MASQUERADE \
+                --module CONFIG_IP6_NF_TARGET_NPT
+
+#
+# DECnet: Netfilter Configuration
+#
+scripts/config  --module CONFIG_DECNET_NF_GRABULATOR \
+                --module CONFIG_NF_TABLES_BRIDGE \
+                --module CONFIG_NFT_BRIDGE_META \
+                --module CONFIG_NFT_BRIDGE_REJECT \
+                --module CONFIG_NF_LOG_BRIDGE \
+                --module CONFIG_BRIDGE_NF_EBTABLES \
+                --module CONFIG_BRIDGE_EBT_BROUTE \
+                --module CONFIG_BRIDGE_EBT_T_FILTER \
+                --module CONFIG_BRIDGE_EBT_T_NAT \
+                --module CONFIG_BRIDGE_EBT_802_3 \
+                --module CONFIG_BRIDGE_EBT_AMONG \
+                --module CONFIG_BRIDGE_EBT_ARP \
+                --module CONFIG_BRIDGE_EBT_IP \
+                --module CONFIG_BRIDGE_EBT_IP6 \
+                --module CONFIG_BRIDGE_EBT_LIMIT \
+                --module CONFIG_BRIDGE_EBT_MARK \
+                --module CONFIG_BRIDGE_EBT_PKTTYPE \
+                --module CONFIG_BRIDGE_EBT_STP \
+                --module CONFIG_BRIDGE_EBT_VLAN \
+                --module CONFIG_BRIDGE_EBT_ARPREPLY \
+                --module CONFIG_BRIDGE_EBT_DNAT \
+                --module CONFIG_BRIDGE_EBT_MARK_T \
+                --module CONFIG_BRIDGE_EBT_REDIRECT \
+                --module CONFIG_BRIDGE_EBT_SNAT \
+                --module CONFIG_BRIDGE_EBT_LOG \
+                --module CONFIG_BRIDGE_EBT_NFLOG \
+                --module CONFIG_IP_DCCP \
+                --module CONFIG_INET_DCCP_DIAG
+
 if [ "$GRSEC" = "true" ]; then
 
   ### GRSecurity ###
