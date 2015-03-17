@@ -53,7 +53,7 @@ scripts/config --enable CONFIG_UEVENT_HELPER
 # IP: Netfilter Configuration
 #
 
-scripts/config  --enable CONFIG_NF_CONNTRACK_PROC_COMPAT=y
+scripts/config  --enable CONFIG_NF_CONNTRACK_PROC_COMPAT
 
 
 scripts/config  --module CONFIG_NF_DEFRAG_IPV4 \
