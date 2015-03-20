@@ -47,6 +47,14 @@ scripts/config --disable DEBUG_INFO
 scripts/config --set-str CONFIG_UEVENT_HELPER_PATH ""
 scripts/config --enable CONFIG_UEVENT_HELPER
 
+
+### Storage Helper ###
+
+scripts/config --enable CONFIG_SCSI \
+               --enable CONFIG_SCSI_MQ_DEFAULT \
+               --enable CONFIG_SATA_AHCI \
+               --enable CONFIG_BLK_DEV_SD
+
 ### IPTABLES FOR 3.18+ ###
 
 #
