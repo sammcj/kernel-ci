@@ -1,4 +1,4 @@
-FROM debian:jessie
+FROM debian:wheezy
 MAINTAINER Sam McLeod
 
 ENV DEBIAN_FRONTEND noninteractive
