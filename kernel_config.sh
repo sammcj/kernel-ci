@@ -55,6 +55,10 @@ scripts/config --enable CONFIG_SCSI \
                --enable CONFIG_SATA_AHCI \
                --enable CONFIG_BLK_DEV_SD
 
+### OverlayFS (new Docker storage driver), 3.18+ ###
+
+scripts/config --enable CONFIG_OVERLAY_FS
+
 ### IPTABLES FOR 3.18+ ###
 
 #
