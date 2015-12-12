@@ -2,6 +2,7 @@
 
 [![Build Status](https://img.shields.io/travis/sammcj/kernel-ci.svg?style=flat-square)](https://travis-ci.org/sammcj/kernel-ci) [![Issues](https://img.shields.io/github/issues/sammcj/kernel-ci.svg?style=flat-square)](https://github.com/sammcj/kernel-ci/issues)
 
+[![Issue Count](https://codeclimate.com/github/sammcj/kernel-ci/badges/issue_count.svg)](https://codeclimate.com/github/sammcj/kernel-ci)
 
 ### Linux Kernel CI for Debian
 
