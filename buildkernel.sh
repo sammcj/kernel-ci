@@ -36,7 +36,7 @@ set -xe
 
 # SOURCE_URL_BASE
 # Where the archive and sources are located
-# DEFAULT VALUE: "https://kernel.org/pub/linux/kernel/v3.x"
+# DEFAULT VALUE: "https://kernel.org/pub/linux/kernel/v4.x"
 
 # TRUSTED_FINGERPRINT
 # Fingerprint of a trusted key the kernel is signed with
@@ -126,7 +126,7 @@ PACKAGECLOUD=${PACKAGECLOUD:-"false"}
 REPREPRO=${REPREPRO:-"false"}
 PACKAGE_CLOUD_URL=${PACKAGE_CLOUD_URL:-"mrmondo/debian-kernel/debian/jessie"}
 REPREPRO_HOST=${REPREPRO_HOST:-"ci@aptproxy"}
-REPREPRO_URL=${REPREPRO_URL:-"var/vhost/mycoolaptmirror.com/html"}
+REPREPRO_URL=${REPREPRO:-"var/vhost/mycoolaptmirror.com/html"}
 GRSEC=${GRSEC:-"false"}
 GRSEC_RSS=${GRSEC_RSS:-"https://grsecurity.net/testing_rss.php"}
 GRSEC_TRUSTED_FINGERPRINT=${GRSEC_TRUSTED_FINGERPRINT:="DE94 52CE 46F4 2094 907F 108B 44D1 C0F8 2525 FE49"}
@@ -138,10 +138,10 @@ if [ "$GRSEC" = "true" ]; then
   # Get the latest grsec patch
   LATEST_GRSEC_PATCH="$(curl "${GRSEC_RSS}"|egrep -o 'https[^ ]*.patch'|sort|uniq|head -1)"
   LATEST_GRSEC_KERNEL_VERSION="$(echo "$LATEST_GRSEC_PATCH"|cut -f 3 -d -;)"
-  KERNEL_VERSION="$LATEST_GRSEC_KERNEL_VERSION"
+  KERNEL_VERSION=${KERNEL_VERSION:-"$LATEST_GRSEC_KERNEL_VERSION"}
   GRSEC_TRUSTEDLONGID=$(echo "$GRSEC_TRUSTED_FINGERPRINT" |  sed "s/ //g")
 else
-  KERNEL_VERSION=$(curl --silent https://www.kernel.org/finger_banner | awk '{print $11}'| head -2|tail -1)
+  KERNEL_VERSION=${KERNEL_VERSION:-"$(curl --silent https://www.kernel.org/finger_banner | grep 'The latest stable' | awk '{print $11}'| head -1)"}
 fi
 
 # -------------PRE-FLIGHT---------------
@@ -218,7 +218,7 @@ function RecvKey()
   done
 }
 
-# Downloads the sources and their signature file.
+# Downloads the sources and their signature file if they don't already exist.
 function DownloadSources()
 {
   # Don't download the kernel source if it exists
@@ -257,11 +257,11 @@ function VerifyExtract()
 function PatchKernelConfig()
 {
   pushd ./linux-"$KERNEL_VERSION"
-  mv ../kernel_config.sh .
+  cp ../kernel_config.sh .
 
   # Copy config from wheezy-backports as Jessie is frozen
   rm -f ".config"
-  mv ../"$STOCK_CONFIG" .config
+  cp ../"$STOCK_CONFIG" .config
   # curl -o ".config" "http://anonscm.debian.org/viewvc/kernel/dists/wheezy-backports/linux/debian/config/config?view=co"
   ./kernel_config.sh
 
