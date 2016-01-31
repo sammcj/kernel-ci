@@ -221,8 +221,12 @@ function RecvKey()
 # Downloads the sources and their signature file.
 function DownloadSources()
 {
-  DownloadManager "$SOURCE_URL_BASE/linux-$KERNEL_VERSION".tar.xz
-  DownloadManager "$SOURCE_URL_BASE/linux-$KERNEL_VERSION".tar.sign
+  # Don't download the kernel source if it exists
+  if [ ! -a "linux-$KERNEL_VERSION.tar.xz" ]
+  then
+    DownloadManager "$SOURCE_URL_BASE/linux-$KERNEL_VERSION".tar.xz
+    DownloadManager "$SOURCE_URL_BASE/linux-$KERNEL_VERSION".tar.sign
+  fi
 }
 
 # Verifies the downloaded sources are signed with the trusted key and extracts them.
