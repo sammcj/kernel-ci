@@ -53,6 +53,8 @@ The following optional environment variables can be configured as required
 
 * Advanced kernel options / configuration can be configured in [kernel_config.sh](https://github.com/sammcj/kernel-ci/blob/master/kernel_config.sh)
 
+For example:
+
 #### APT_UPDATE
 Perform an apt-get update and upgrade prior to building
 
@@ -78,49 +80,23 @@ Default Value: `ABAF 11C6 5A29 70B1 30AB  E3C4 79BE 3E43 0041 1886`
 #### SOURCE\_URL_BASE
 Where the archive and sources are located
 
-Default Value: `https://kernel.org/pub/linux/kernel/v3.x`
+Default Value: `https://kernel.org/pub/linux/kernel/v4.x`
 
 #### KEYSERVER
 Server used to get the trusted key from.
 
 Default Value: `hkp://pool.sks-keyservers.net`
 
-#### BUILD\_ONLY\_LOADED_MODULES
-Set to yes if you want to build only the modules that are currently
-loaded Speeds up the build. But modules that are not currently
-loaded will be missing!  Only usefull if you really have to speed up
-the build time and the kernel is intended for the running system and
-the hardware is not expected to change.
+etc...
 
-Default Value: `no`
+#### STOCK_CONFIG
+The kernel config to use for the build
 
-### GRSecurity Patching
-_"Grsecurity is an extensive security enhancement to the Linux kernel that defends against a wide range of security threats through intelligent access control, memory corruption-based exploit prevention, and a host of other system hardening that generally require no configuration. It has been actively developed and maintained for the past 13 years. Commercial support for grsecurity is available through Open Source Security, Inc."_
-https://grsecurity.net
+_Note_ if using a modern config such as the 4.5.5 config's provided in this repo, you must be using a modern very of GCC that supports `fstack-protector-strong`, otherwise you will get this error:
 
-#### GRSEC
-Enable GRSecurity Patching
-
-Default Value: `false`
-
-#### GRSEC_RSS
-Source of GRSecurity patch RSS feed
-
-Default Value: `https://grsecurity.net/testing_rss.php`
-
-#### GRSEC_KEY
-Currently using The PaX Team <pageexec at freemail dot hu> public key
-
-See http://sks.pkqs.net/pks/lookup?op=vindex&fingerprint=on&search=0x44D1C0F82525FE49
-
-Default Value: `2525FE49`
-
-#### GRSEC\_TRUSTED_FINGERPRINT
-Fingerprint of a trusted key the GRSecurity patch is signed with
-See https://grsecurity.net/download.php
-ATTENTION: Make sure you really trust it!
-
-Default Value: `DE94 52CE 46F4 2094 907F 108B 44D1 C0F8 2525 FE49`
+```bash
+Makefile:667: Cannot use CONFIG_CC_STACKPROTECTOR_STRONG: -fstack-protector-strong not supported by compiler
+```
 
 ### Post Processing Options
 
