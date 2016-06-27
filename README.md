@@ -49,9 +49,10 @@ Successful builds from this project get uploaded to [PackageCloud.io](https://pa
 You may add the repository for them by running: `curl https://packagecloud.io/install/repositories/mrmondo/debian-kernel/script.deb | sudo bash`
 
 ## Optional Configuration
-The following optional environment variables can be configured as required
 
-* Advanced kernel options / configuration can be configured in [kernel_config.sh](https://github.com/sammcj/kernel-ci/blob/master/kernel_config.sh)
+**A list of all build options can be found in [kernel_config.sh](https://github.com/sammcj/kernel-ci/blob/master/kernel_config.sh)**
+
+For example:
 
 For example:
 
