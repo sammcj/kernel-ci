@@ -62,6 +62,7 @@ set -xe
 # STOCK_CONFIG
 # Currently using Debian Jessie 3.16 config
 # DEFAULT VALUE: "config-3.16.0-0.bpo.4-amd64"
+# EXAMPLE VALUE: "config-4.5.5-amd64-mq-nodebug"
 
 # BUILD_ONLY_LOADED_MODULES
 # Set to yes if you want to build only the modules that are currently
