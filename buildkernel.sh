@@ -176,7 +176,7 @@ BuildEnv() {
   else
     echo "Not running in Docker"
     export BUILD_DIR=$(pwd)
-    apt-get -y install "gcc-$GCC_VERSION-plugin-dev" curl coreutils fakeroot build-essential kernel-package wget xz-utils gnupg bc devscripts apt-utils initramfs-tools time aria2
+    apt-get -y install "gcc-$GCC_VERSION-plugin-dev" libssl-dev curl coreutils fakeroot build-essential kernel-package wget xz-utils gnupg bc devscripts apt-utils initramfs-tools time aria2
     apt-get clean
   fi
 }
