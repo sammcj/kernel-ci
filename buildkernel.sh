@@ -135,6 +135,7 @@ GRSEC_TRUSTED_FINGERPRINT=${GRSEC_TRUSTED_FINGERPRINT:="DE94 52CE 46F4 2094 907F
 GRSEC_KEY=${GRSEC_KEY:="2525FE49"}
 GCC_VERSION="$(gcc -dumpversion|awk -F "." '{print $1"."$2}')"
 STOCK_CONFIG=${STOCK_CONFIG:="config-3.16.0-0.bpo.4-amd64"}
+CONCURRENCY_LEVEL=$(grep -c '^processor' /proc/cpuinfo)
 
 if [ "$GRSEC" = "true" ]; then
   # Get the latest grsec patch

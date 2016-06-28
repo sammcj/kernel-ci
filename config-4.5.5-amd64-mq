@@ -13,7 +13,6 @@
 # Ensure Keys and Signature are unique to this build, see https://lists.debian.org/debian-kernel/2016/04/msg00579.html
 # sed -i '/CONFIG_SYSTEM_TRUSTED_KEYS/d' config-4*
 # sed -i '/CONFIG_MODULE_SIG_ALL/d' config-4*
-# sed -i '/CONFIG_MODULE_SIG_KEY/d' config-4*
 
 CONFIG_64BIT=y
 CONFIG_X86_64=y
