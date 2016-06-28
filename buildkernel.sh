@@ -176,16 +176,16 @@ BuildEnv() {
   else
     echo "Not running in Docker"
     export BUILD_DIR=$(pwd)
-    apt-get -y install "gcc-$GCC_VERSION-plugin-dev" coreutils fakeroot build-essential kernel-package wget xz-utils gnupg bc devscripts apt-utils initramfs-tools time aria2
+    apt-get -y install "gcc-$GCC_VERSION-plugin-dev" curl coreutils fakeroot build-essential kernel-package wget xz-utils gnupg bc devscripts apt-utils initramfs-tools time aria2
     apt-get clean
   fi
 }
 
 if [ "$APT_UPDATE" = "true" ]; then
   echo "Performing apt-get update..."
-  apt-get -qq update
+  apt-get -y update
   echo "Performing apt-get upgrade..."
-  apt-get -qq upgrade
+  apt-get -y upgrade
 fi
 
 mkdir -p kpatch
