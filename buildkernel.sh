@@ -161,7 +161,7 @@ echo "$(getconf _NPROCESSORS_ONLN) CPU cores detected"
 # Use aria2 crather than curl if installed
 DownloadManager() {
   if hash aria2c 2>/dev/null; then
-    aria2c "$@";
+    aria2c --auto-file-renaming=false -c -x 4 "$@";
   else
     curl -O "$@";
   fi
