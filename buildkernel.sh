@@ -364,9 +364,17 @@ function PackageCloud()
 
 }
 
+# Cache the build IO as possible in memory
+function SetCache()
+{
+  sysctl vm.dirty_background_ratio=50
+  sysctl vm.dirty_ratio=80
+}
+
 # --------------RUN------------------
 
 # Run all function
+SetCache
 CheckFreeSpace
 BuildEnv
 RecvKey
