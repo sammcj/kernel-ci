@@ -1,6 +1,10 @@
 ![kernel_300](https://cloud.githubusercontent.com/assets/862951/6546050/53636040-c5f7-11e4-94d4-5e2dbfb8a27c.png)
 
-[![Build Status](https://img.shields.io/travis/sammcj/kernel-ci.svg?style=flat-square)](https://travis-ci.org/sammcj/kernel-ci) [![Issues](https://img.shields.io/github/issues/sammcj/kernel-ci.svg?style=flat-square)](https://github.com/sammcj/kernel-ci/issues)
+_Note: If the below builds are failing, it's likely because Travis and CircleCI both use Ubuntu rather than Debian_
+
+[![Travis](https://img.shields.io/travis/sammcj/kernel-ci.svg?style=flat-square)](https://travis-ci.org/sammcj/kernel-ci) [![Issues](https://img.shields.io/github/issues/sammcj/kernel-ci.svg?style=flat-square)](https://github.com/sammcj/kernel-ci/issues)
+
+[![CircleCI](https://circleci.com/gh/sammcj/kernel-ci.svg?style=svg)](https://circleci.com/gh/sammcj/kernel-ci)
 
 [![Issue Count](https://codeclimate.com/github/sammcj/kernel-ci/badges/issue_count.svg)](https://codeclimate.com/github/sammcj/kernel-ci)
 

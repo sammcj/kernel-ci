@@ -60,9 +60,9 @@ set -xe
 # DEFAULT VALUE: "6092693E"
 
 # STOCK_CONFIG
-# Currently using Debian Jessie 3.16 config
-# DEFAULT VALUE: "config-3.16.0-0.bpo.4-amd64"
-# EXAMPLE VALUE: "config-4.5.5-amd64-mq-nodebug"
+# Currently using Debian Jessie backports 4.6.0 config
+# DEFAULT VALUE: "config-4.6.0-0.bpo.1-amd64"
+# EXAMPLE VALUE: "config-3.16.0-0.bpo.4-amd64"
 
 # BUILD_ONLY_LOADED_MODULES
 # Set to yes if you want to build only the modules that are currently
@@ -134,7 +134,8 @@ GRSEC_RSS=${GRSEC_RSS:-"https://grsecurity.net/testing_rss.php"}
 GRSEC_TRUSTED_FINGERPRINT=${GRSEC_TRUSTED_FINGERPRINT:="DE94 52CE 46F4 2094 907F 108B 44D1 C0F8 2525 FE49"}
 GRSEC_KEY=${GRSEC_KEY:="2525FE49"}
 GCC_VERSION="$(gcc -dumpversion|awk -F "." '{print $1"."$2}')"
-STOCK_CONFIG=${STOCK_CONFIG:="config-3.16.0-0.bpo.4-amd64"}
+STOCK_CONFIG=${STOCK_CONFIG:="config-4.6.0-0.bpo.1-amd64"}
+CONCURRENCY_LEVEL=$(grep -c '^processor' /proc/cpuinfo)
 
 if [ "$GRSEC" = "true" ]; then
   # Get the latest grsec patch
@@ -364,9 +365,17 @@ function PackageCloud()
 
 }
 
+# Cache the build IO as possible in memory
+function SetCache()
+{
+  sysctl vm.dirty_background_ratio=50
+  sysctl vm.dirty_ratio=80
+}
+
 # --------------RUN------------------
 
 # Run all function
+SetCache
 CheckFreeSpace
 BuildEnv
 RecvKey

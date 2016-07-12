@@ -1,3 +1,6 @@
 .swp
 .tmp
-
+.deb
+.xz
+.sign
+linux-4*
