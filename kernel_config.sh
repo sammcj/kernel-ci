@@ -51,7 +51,24 @@ scripts/config --disable DEBUG_INFO \
                --disable CONFIG_CIFS_DEBUG \
                --disable CONFIG_DLM_DEBUG \
                --disable CONFIG_SCHED_DEBUG \
-               --disable CONFIG_HAVE_DMA_API_DEBUG
+               --disable CONFIG_HAVE_DMA_API_DEBUG \
+               --disable CONFIG_ARCH_SUPPORTS_DEBUG_PAGEALLOC \
+               --disable CONFIG_DEBUG_RODATA \
+               --disable CONFIG_DEBUG_BLK_CGROUP \
+               --disable CONFIG_CGROUP_DEBUG \
+               --disable CONFIG_GRKERNSEC_AUDIT_GROUP \
+               --disable CONFIG_GRKERNSEC_AUDIT_GID \
+               --disable CONFIG_GRKERNSEC_EXECLOG \
+               --disable CONFIG_GRKERNSEC_RESLOG \
+               --disable CONFIG_GRKERNSEC_CHROOT_EXECLOG \
+               --disable CONFIG_GRKERNSEC_AUDIT_PTRACE \
+               --disable CONFIG_GRKERNSEC_AUDIT_CHDIR \
+               --disable CONFIG_GRKERNSEC_AUDIT_MOUNT \
+               --disable CONFIG_GRKERNSEC_SIGNAL \
+               --disable CONFIG_GRKERNSEC_FORKFAIL \
+               --disable CONFIG_GRKERNSEC_TIME \
+               --disable CONFIG_GRKERNSEC_PROC_IPADDR \
+               --disable CONFIG_GRKERNSEC_RWXMAP_LOG
 
 # Ensure Keys and Signature are unique to this build, see https://lists.debian.org/debian-kernel/2016/04/msg00579.html
 scripts/config --disable CONFIG_SYSTEM_TRUSTED_KEYS
