@@ -242,4 +242,12 @@ if [ "$GRSEC" = "true" ]; then
   scripts/config --set-val CONFIG_GRKERNSEC_FLOODTIME 10 \
                  --set-val CONFIG_GRKERNSEC_FLOODBURST 6
 
+  # Modules
+  scripts/config --enable  CONFIG_MODULE_SIG \
+                 --enable  CONFIG_MODULE_SIG_SHA256 \
+                 --enable  CONFIG_MODULES_TREE_LOOKUP \
+                 --enable  CONFIG_MODVERSIONS \
+                 --set-val CONFIG_MODULE_SIG_HASH "sha256" \
+                 --set-val CONFIG_MODULE_SIG_KEY ""
+
 fi
