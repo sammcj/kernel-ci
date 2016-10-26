@@ -265,8 +265,6 @@ function PatchKernelConfig()
 
 	# If there is a kernel config, move it to a backup
 	mv -f ".config .config.old" | true
-	# Also it might at times be useful to have a copy of the buildsystems config
-	cp -f "/boot/config-$(uname -r) .config.buildsystem" | true
   # Copy config from wheezy-backports as Jessie is frozen
   cp ../"$STOCK_CONFIG" .config
   # curl -o ".config" "http://anonscm.debian.org/viewvc/kernel/dists/wheezy-backports/linux/debian/config/config?view=co"
@@ -376,6 +374,22 @@ function SetCache()
   sysctl vm.dirty_ratio=80
 }
 
+# -------------PATCH-----------------
+
+# This provides support for patching the kernel with standard patches / diffs
+# You must place p0 compatible patches in the patches/ directory
+
+ApplyPatches() {
+	if [ -n "$(ls -A patch/*)" ]; then
+		echo "No Patches detected in patch/"
+	else
+    echo "Detected Patches"
+    pushd ./linux-"$KERNEL_VERSION"
+		patch -u -p0 --verbose < ../patches/*.patch
+		popd
+	fi
+}
+
 # --------------RUN------------------
 
 # Run all function
@@ -392,6 +406,7 @@ fi
 
 PatchKernelConfig
 SetCurrentConfig
+ApplyPatches
 Build
 
 if [ "$REPREPRO" = "true" ]; then
