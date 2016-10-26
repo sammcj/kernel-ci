@@ -263,8 +263,11 @@ function PatchKernelConfig()
   pushd ./linux-"$KERNEL_VERSION"
   cp ../kernel_config.sh .
 
+	# If there is a kernel config, move it to a backup
+	mv -f ".config .config.old" | true
+	# Also it might at times be useful to have a copy of the buildsystems config
+	cp -f "/boot/config-$(uname -r) .config.buildsystem" | true
   # Copy config from wheezy-backports as Jessie is frozen
-  rm -f ".config"
   cp ../"$STOCK_CONFIG" .config
   # curl -o ".config" "http://anonscm.debian.org/viewvc/kernel/dists/wheezy-backports/linux/debian/config/config?view=co"
   ./kernel_config.sh
