@@ -1,11 +1,5 @@
 ![kernel_300](https://cloud.githubusercontent.com/assets/862951/6546050/53636040-c5f7-11e4-94d4-5e2dbfb8a27c.png)
 
-_Note: If the below builds are failing, it's likely because Travis and CircleCI both use Ubuntu rather than Debian_
-
-[![Travis](https://img.shields.io/travis/sammcj/kernel-ci.svg?style=flat-square)](https://travis-ci.org/sammcj/kernel-ci) [![Issues](https://img.shields.io/github/issues/sammcj/kernel-ci.svg?style=flat-square)](https://github.com/sammcj/kernel-ci/issues)
-
-[![CircleCI](https://circleci.com/gh/sammcj/kernel-ci.svg?style=svg)](https://circleci.com/gh/sammcj/kernel-ci)
-
 [![Issue Count](https://codeclimate.com/github/sammcj/kernel-ci/badges/issue_count.svg)](https://codeclimate.com/github/sammcj/kernel-ci)
 
 ### Linux Kernel CI for Debian
@@ -25,7 +19,7 @@ _Note: If the below builds are failing, it's likely because Travis and CircleCI 
 <!-- MarkdownTOC -->
 
 - [Usage](#usage)
-- [Public CI Builds](#public-ci-builds)
+- [Patches](#patches)
 - [Optional Configuration](#optional-configuration)
 - [TODO:](#todo)
 - [Example Output](#example-output)
@@ -35,26 +29,26 @@ _Note: If the below builds are failing, it's likely because Travis and CircleCI 
 ---
 
 ## Usage
-### Docker
-```bash
-make ci
-```
-After a successfully building the kernel package, the kernel will be copied to /mnt/storage on the host.
-### Build Kernel Deb Without Docker
+
+### Build Kernel Deb
 ```bash
 ./buildkernel.sh
 ```
 
-## Public CI Builds
-Successful builds from this project get uploaded to [PackageCloud.io](https://packagecloud.io/mrmondo/debian-kernel?filter=debs)
+### Build Kernel Deb with Docker
+```bash
+make ci
+```
+After a successfully building the kernel package, the kernel will be copied to /mnt/storage on the host.
 
-You may add the repository for them by running: `curl https://packagecloud.io/install/repositories/mrmondo/debian-kernel/script.deb | sudo bash`
+
+## Patches
+
+Any kernel patches (p0 format) placed in ./patches/ will be applied
 
 ## Optional Configuration
 
 **A list of all build options can be found in [kernel_config.sh](https://github.com/sammcj/kernel-ci/blob/master/kernel_config.sh)**
-
-For example:
 
 For example:
 

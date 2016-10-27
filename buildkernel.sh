@@ -134,7 +134,9 @@ GRSEC_RSS=${GRSEC_RSS:-"https://grsecurity.net/testing_rss.php"}
 GRSEC_TRUSTED_FINGERPRINT=${GRSEC_TRUSTED_FINGERPRINT:="DE94 52CE 46F4 2094 907F 108B 44D1 C0F8 2525 FE49"}
 GRSEC_KEY=${GRSEC_KEY:="2525FE49"}
 GCC_VERSION="$(gcc -dumpversion|awk -F "." '{print $1"."$2}')"
-CONCURRENCY_LEVEL=$(grep -c '^processor' /proc/cpuinfo)
+CONCURRENCY_LEVEL="$(grep -c '^processor' /proc/cpuinfo)"
+
+# ---------------GRSEC-----------------
 
 if [ "$GRSEC" = "true" ]; then
   # Get the latest grsec patch
@@ -144,7 +146,7 @@ if [ "$GRSEC" = "true" ]; then
   STOCK_CONFIG=${STOCK_CONFIG:="config-4.6.0-1-grsec-amd64"}
   GRSEC_TRUSTEDLONGID=$(echo "$GRSEC_TRUSTED_FINGERPRINT" |  sed "s/ //g")
 else
-  KERNEL_VERSION=${KERNEL_VERSION:-"$(curl --silent https://www.kernel.org/finger_banner | grep 'The latest stable' | awk '{print $11}'| head -1)"}
+  KERNEL_VERSION=${KERNEL_VERSION:-"$(curl --silent https://www.kernel.org/finger_banner | grep 'The latest stable' | rev | cut -f 1 -d ' ' | rev | head -1)"}
   STOCK_CONFIG=${STOCK_CONFIG:="config-4.6.0-0.bpo.1-amd64"}
 fi
 
@@ -263,8 +265,8 @@ function PatchKernelConfig()
   pushd ./linux-"$KERNEL_VERSION"
   cp ../kernel_config.sh .
 
-	# If there is a kernel config, move it to a backup
-	mv -f ".config .config.old" | true
+  # If there is a kernel config, move it to a backup
+  mv -f ".config .config.old" | true
   # Copy config from wheezy-backports as Jessie is frozen
   cp ../"$STOCK_CONFIG" .config
   # curl -o ".config" "http://anonscm.debian.org/viewvc/kernel/dists/wheezy-backports/linux/debian/config/config?view=co"
@@ -378,16 +380,26 @@ function SetCache()
 
 # This provides support for patching the kernel with standard patches / diffs
 # You must place p0 compatible patches in the patches/ directory
+# By default it will add a patch for DirtyCOW if the kernel version is less than 4.8.4
 
 ApplyPatches() {
-	if [ -n "$(ls -A patch/*)" ]; then
-		echo "No Patches detected in patch/"
-	else
+
+  # If the kernel version doesn't contain the dirtyCOW patch, lets apply it
+  if [ $(echo "$KERNEL_VERSION" "4.8.3" | awk '{ exit ($1 > $2) ? 1 : 0;}') ]; then
+    cp ./example_patches/dirtyCOW.patch ./linux-"$KERNEL_VERSION"/patches/
+  else
+    # Ensure the patches directory is clean of the example security patch
+    rm -f ./linux-"$KERNEL_VERSION"/patches/dirtyCOW.patch
+  fi
+
+  if [ -n "$(ls -A patch/*)" ]; then
+    echo "No Patches detected in patch/"
+  else
     echo "Detected Patches"
     pushd ./linux-"$KERNEL_VERSION"
-		patch -u -p0 --verbose < ../patches/*.patch
-		popd
-	fi
+    patch -u -p0 --verbose < ../patches/*.patch
+    popd
+  fi
 }
 
 # --------------RUN------------------
