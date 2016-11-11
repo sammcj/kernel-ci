@@ -61,7 +61,7 @@ set -xe
 
 # STOCK_CONFIG
 # Currently using Debian Jessie backports 4.6.0 config
-# DEFAULT VALUE: "config-4.8.0-rc8-amd64"
+# DEFAULT VALUE: "config-4.6.0-0.bpo.1-amd64"
 # EXAMPLE VALUE: "config-3.16.0-0.bpo.4-amd64"
 
 # BUILD_ONLY_LOADED_MODULES
@@ -147,7 +147,7 @@ if [ "$GRSEC" = "true" ]; then
   GRSEC_TRUSTEDLONGID=$(echo "$GRSEC_TRUSTED_FINGERPRINT" |  sed "s/ //g")
 else
   KERNEL_VERSION=${KERNEL_VERSION:-"$(curl --silent https://www.kernel.org/finger_banner | grep 'The latest stable' | rev | cut -f 1 -d ' ' | rev | head -1)"}
-  STOCK_CONFIG=${STOCK_CONFIG:="config-4.8.0-rc8-amd64"}
+  STOCK_CONFIG=${STOCK_CONFIG:="config-4.6.0-0.bpo.1-amd64"}
 fi
 
 # -------------PRE-FLIGHT---------------
