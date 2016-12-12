@@ -1,0 +1,5 @@
+run.sh
+linux/
+*.tmp
+*.sign
+linux-4*

@@ -53,7 +53,7 @@ set -xe
 
 # KEYSERVER
 # Server used to get the trusted key from.
-# DEFAULT VALUE: "x-hkp://pool.sks-keyservers.net"
+# DEFAULT VALUE: "wwwkeys.uk.pgp.net"
 
 # KERNEL_ORG_KEY
 # Currently using Greg Kroah-Hartman's public key
@@ -121,7 +121,7 @@ APT_UPDATE=${APT_UPDATE:-"true"}
 TRUSTED_FINGERPRINT=${TRUSTED_FINGERPRINT:-"C75D C40A 11D7 AF88 9981  ED5B C86B A06A 517D 0F0E"}
 VERSION_POSTFIX=${VERSION_POSTFIX:-"-ci"}
 SOURCE_URL_BASE=${SOURCE_URL_BASE:-"https://kernel.org/pub/linux/kernel/v4.x"}
-KEYSERVER=${KEYSERVER:-"x-hkp://pool.sks-keyservers.net"}
+KEYSERVER=${KEYSERVER:-"wwwkeys.uk.pgp.net"}
 KERNEL_ORG_KEY=${KERNEL_ORG_KEY:-"6092693E"}
 BUILD_ONLY_LOADED_MODULES=${BUILD_ONLY_LOADED_MODULES:-"false"}
 PACKAGECLOUD=${PACKAGECLOUD:-"false"}
@@ -162,7 +162,7 @@ CheckFreeSpace() {
 
 echo "$(getconf _NPROCESSORS_ONLN) CPU cores detected"
 
-# Use aria2 crather than curl if installed
+# Use aria2 rather than curl if installed
 DownloadManager() {
   if hash aria2c 2>/dev/null; then
     aria2c --auto-file-renaming=false -c -x 4 "$@";
@@ -174,22 +174,35 @@ DownloadManager() {
 # Are we running in Docker?
 # If not, set the default build dir (where the git repo is checked out) to $HOME
 BuildEnv() {
-  if [ -f /.dockerinit ]; then
+  if [ -f /.dockerenv ]; then
     echo "Detected Docker"
+
+    export BUILD_DIR="/app"
+    if [ -d "/linux/" ] ; then
+      # by convention, a /linux folder can be bind-mounted to keep all sources
+      export SRC_DIR="/linux"
+    else
+      # otherwise, use PWD
+      export SRC_DIR=$BUILD_DIR
+    fi
+
     export BUILD_DIR="/app"
   else
     echo "Not running in Docker"
     export BUILD_DIR=$(pwd)
+    export SRC_DIR=$BUILD_DIR
     apt-get -y install "gcc-$GCC_VERSION-plugin-dev" libssl-dev curl coreutils fakeroot build-essential kernel-package wget xz-utils gnupg bc devscripts apt-utils initramfs-tools time aria2
     apt-get clean
   fi
 }
 
 if [ "$APT_UPDATE" = "true" ]; then
-  echo "Performing apt-get update..."
-  apt-get -y update
-  echo "Performing apt-get upgrade..."
-  apt-get -y upgrade
+  if [ ! -f /.dockerenv ]; then
+    echo "Performing apt-get update..."
+    apt-get -y update
+    echo "Performing apt-get upgrade..."
+    apt-get -y upgrade
+  fi
 fi
 
 mkdir -p kpatch
@@ -227,17 +240,23 @@ function RecvKey()
 # Downloads the sources and their signature file if they don't already exist.
 function DownloadSources()
 {
+  pushd $SRC_DIR
+
   # Don't download the kernel source if it exists
   if [ ! -a "linux-$KERNEL_VERSION.tar.xz" ]
   then
     DownloadManager "$SOURCE_URL_BASE/linux-$KERNEL_VERSION".tar.xz
     DownloadManager "$SOURCE_URL_BASE/linux-$KERNEL_VERSION".tar.sign
   fi
+
+  popd
 }
 
 # Verifies the downloaded sources are signed with the trusted key and extracts them.
 function VerifyExtract()
 {
+  pushd $SRC_DIR
+
   echo "Extracting downloaded sources to tar..."
   [ -f linux-"$KERNEL_VERSION".tar ] || unxz --keep linux-"$KERNEL_VERSION".tar.xz
 
@@ -254,6 +273,8 @@ function VerifyExtract()
   echo "Extracting tar..."
   tar -xf linux-"$KERNEL_VERSION".tar
   rm linux-"$KERNEL_VERSION".tar
+
+  popd
 }
 
 # --------------CONFIG------------------
@@ -262,13 +283,13 @@ function VerifyExtract()
 
 function PatchKernelConfig()
 {
-  pushd ./linux-"$KERNEL_VERSION"
-  cp ../kernel_config.sh .
+  pushd $SRC_DIR/linux-"$KERNEL_VERSION"
+  cp $BUILD_DIR/kernel_config.sh .
 
   # If there is a kernel config, move it to a backup
   mv -f ".config .config.old" | true
   # Copy config from wheezy-backports as Jessie is frozen
-  cp ../"$STOCK_CONFIG" .config
+  cp $BUILD_DIR/"$STOCK_CONFIG" .config
   # curl -o ".config" "http://anonscm.debian.org/viewvc/kernel/dists/wheezy-backports/linux/debian/config/config?view=co"
   ./kernel_config.sh
 
@@ -279,7 +300,7 @@ function PatchKernelConfig()
 # Copies the configuration of the running kernel and applies defaults to all settings that are new in the upstream version.
 function SetCurrentConfig()
 {
-  pushd ./linux-"$KERNEL_VERSION"
+  pushd $SRC_DIR/linux-"$KERNEL_VERSION"
 
   # Use the copied configuration and apply defaults to all new settings
   yes "" | make oldconfig
@@ -297,19 +318,19 @@ function SetCurrentConfig()
 
 function InstallGrsecurity()
 {
-  pushd ./linux-"$KERNEL_VERSION"
+  pushd $SRC_DIR/linux-"$KERNEL_VERSION"
 
   echo "Patch located at $LATEST_GRSEC_PATCH, downloading"
-  curl -o ../kpatch/grsecurity.patch "$LATEST_GRSEC_PATCH"
-  curl -o ../kpatch/grsecurity.patch.sig "$LATEST_GRSEC_PATCH.sig"
+  curl -o $BUILD_DIR/kpatch/grsecurity.patch "$LATEST_GRSEC_PATCH"
+  curl -o $BUILD_DIR/kpatch/grsecurity.patch.sig "$LATEST_GRSEC_PATCH.sig"
 
   gpg --keyserver "$KEYSERVER" --recv-keys "$GRSEC_KEY"
 
   echo "Verifying patch is signed with the trusted key..."
-  gpg -v --trusted-key "0x${GRSEC_TRUSTEDLONGID:24}" --verify ../kpatch/grsecurity.patch.sig
+  gpg -v --trusted-key "0x${GRSEC_TRUSTEDLONGID:24}" --verify $BUILD_DIR/kpatch/grsecurity.patch.sig
 
   echo "Patching kernel for GRSecurity..."
-  patch -p1 < ../kpatch/grsecurity.patch
+  patch -p1 < $BUILD_DIR/kpatch/grsecurity.patch
   echo "Patch done"
 
   popd
@@ -319,7 +340,7 @@ function InstallGrsecurity()
 
 function Build()
 {
-  pushd ./linux-"$KERNEL_VERSION"
+  pushd $SRC_DIR/linux-"$KERNEL_VERSION"
 
   echo "Now building the kernel, this will take a while..."
   time fakeroot make-kpkg --jobs "$(getconf _NPROCESSORS_ONLN)" --append-to-version "$VERSION_POSTFIX" --initrd kernel_image
@@ -336,7 +357,7 @@ function Build()
 function Sum()
 {
   pwd
-  pushd ./linux-"$KERNEL_VERSION"
+  pushd $SRC_DIR/linux-"$KERNEL_VERSION"
   md5sum "$PACKAGE_NAME"
   popd
 }
@@ -347,7 +368,7 @@ function Sum()
 function RepreproPush()
 {
   pwd
-  pushd ./linux-"$KERNEL_VERSION"
+  pushd $SRC_DIR/linux-"$KERNEL_VERSION"
 
   scp "$PACKAGE_NAME $HEADERS_PACKAGE_NAME" "$REPREPRO_HOST":/var/tmp
   ssh "$REPREPRO_HOST" reprepro -A all -Vb "$REPREPRO_URL" /var/tmp/"$PACKAGE_NAME"
@@ -372,8 +393,11 @@ function PackageCloud()
 # Cache the build IO as possible in memory
 function SetCache()
 {
-  sysctl vm.dirty_background_ratio=50
-  sysctl vm.dirty_ratio=80
+  if [ ! -f /.dockerenv ]; then
+    # skip this on docker
+    sysctl vm.dirty_background_ratio=50
+    sysctl vm.dirty_ratio=80
+  fi
 }
 
 # -------------PATCH-----------------
@@ -392,12 +416,12 @@ ApplyPatches() {
     rm -f ./linux-"$KERNEL_VERSION"/patches/dirtyCOW.patch
   fi
 
-  if [ -n "$(ls -A patch/*)" ]; then
-    echo "No Patches detected in patch/"
+  if [ ! -d "patches/" ] || [ -n "$(ls -A patches/*)" ]; then
+    echo "No patches detected in patches/ folder"
   else
     echo "Detected Patches"
-    pushd ./linux-"$KERNEL_VERSION"
-    patch -u -p0 --verbose < ../patches/*.patch
+    pushd /linux/linux-"$KERNEL_VERSION"
+    patch -u -p0 --verbose < $BUILD_DIR/patches/*.patch
     popd
   fi
 }
