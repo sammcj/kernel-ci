@@ -1,4 +1,4 @@
-.swp
+*.sw?
 .tmp
 .deb
 .xz
