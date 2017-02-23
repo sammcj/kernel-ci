@@ -115,6 +115,10 @@ set -xe
 # The URL of the reprepro mirror
 # DEFAULT VALUE: "var/vhost/mycoolaptmirror.com/html"
 
+# PATCH_DIRECTORY
+# The path of any kernel p0 patches to apply if required
+# DEFAULT VALUE: "../patches/*"
+
 # -------------VARIABLES---------------
 
 APT_UPDATE=${APT_UPDATE:-"true"}
@@ -135,6 +139,7 @@ GRSEC_TRUSTED_FINGERPRINT=${GRSEC_TRUSTED_FINGERPRINT:="DE94 52CE 46F4 2094 907F
 GRSEC_KEY=${GRSEC_KEY:="2525FE49"}
 GCC_VERSION="$(gcc -dumpversion|awk -F "." '{print $1"."$2}')"
 CONCURRENCY_LEVEL="$(grep -c '^processor' /proc/cpuinfo)"
+PATCH_DIRECTORY=${PATCH_DIRECTORY:="../patches/*"}
 
 # ---------------GRSEC-----------------
 
@@ -397,7 +402,10 @@ ApplyPatches() {
   else
     echo "Detected Patches"
     pushd ./linux-"$KERNEL_VERSION"
-    patch -u -p0 --verbose < ../patches/*.patch
+		for patch in $PATCH_DIRECTORY
+		do
+	    patch -u -p0 --verbose < "$patch"
+	  done
     popd
   fi
 }
