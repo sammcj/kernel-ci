@@ -10,7 +10,7 @@ job1:
     - gem install package_cloud
 
   variables:
-    - KERNEL_VERSION: "4.6.4"
+    KERNEL_VERSION: "4.6.4"
 
   script:
     - ./buildkernel.sh
