@@ -190,12 +190,14 @@ BuildEnv() {
   fi
 }
 
-#if [ "$APT_UPDATE" == "true" ]; then
-echo "Performing apt-get update..."
-apt-get -y update
-echo "Performing apt-get upgrade..."
-apt-get -y upgrade
-#fi
+AptUpdate() {
+  if [ "$APT_UPDATE" == "true" ]; then
+    echo "Performing apt-get update..."
+    apt-get -y update
+    echo "Performing apt-get upgrade..."
+    apt-get -y upgrade
+  fi
+}
 
 mkdir -p kpatch
 
@@ -413,6 +415,7 @@ ApplyPatches() {
 # --------------RUN------------------
 
 # Run all function
+AptUpdate
 SetCache
 CheckFreeSpace
 BuildEnv
