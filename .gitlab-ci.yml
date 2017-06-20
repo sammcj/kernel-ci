@@ -10,6 +10,7 @@ job1:
     - gem install package_cloud
 
   variables:
+    APT_UPDATE: "true"
     KERNEL_VERSION: "4.6.4"
 
   script:
