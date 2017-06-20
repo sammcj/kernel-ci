@@ -390,18 +390,18 @@ function SetCache()
 # By default it will add a patch for DirtyCOW if the kernel version is less than 4.8.4
 
 ApplyPatches() {
-  mkdir -p ./linux-"$KERNEL_VERSION"/patches/
 
   # If the kernel version doesn't contain the dirtyCOW patch, lets apply it
   if [ $(echo "$KERNEL_VERSION" "4.8.3" | awk '{ exit ($1 > $2) ? 1 : 0;}') ]; then
+    mkdir -p ./linux-"$KERNEL_VERSION"/patches
     cp ./example_patches/dirtyCOW.patch ./linux-"$KERNEL_VERSION"/patches/
   else
     # Ensure the patches directory is clean of the example security patch
     rm -f ./linux-"$KERNEL_VERSION"/patches/dirtyCOW.patch
   fi
 
-  if [ -n "$(ls -A patch/*)" ]; then
-    echo "No Patches detected in patch/"
+  if [ -n "$(ls -A patches/*)" ]; then
+    echo "No Patches detected in $PATCH_DIRECTORY"
   else
     echo "Detected Patches"
     pushd ./linux-"$KERNEL_VERSION"
