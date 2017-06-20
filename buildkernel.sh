@@ -190,12 +190,14 @@ BuildEnv() {
   fi
 }
 
-if [ "$APT_UPDATE" = "true" ]; then
-  echo "Performing apt-get update..."
-  apt-get -y update
-  echo "Performing apt-get upgrade..."
-  apt-get -y upgrade
-fi
+AptUpdate() {
+  if [ "$APT_UPDATE" == "true" ]; then
+    echo "Performing apt-get update..."
+    apt-get -y update
+    echo "Performing apt-get upgrade..."
+    apt-get -y upgrade
+  fi
+}
 
 mkdir -p kpatch
 
@@ -388,6 +390,7 @@ function SetCache()
 # By default it will add a patch for DirtyCOW if the kernel version is less than 4.8.4
 
 ApplyPatches() {
+  mkdir -p ./linux-"$KERNEL_VERSION"/patches/
 
   # If the kernel version doesn't contain the dirtyCOW patch, lets apply it
   if [ $(echo "$KERNEL_VERSION" "4.8.3" | awk '{ exit ($1 > $2) ? 1 : 0;}') ]; then
@@ -413,6 +416,7 @@ ApplyPatches() {
 # --------------RUN------------------
 
 # Run all function
+AptUpdate
 SetCache
 CheckFreeSpace
 BuildEnv
