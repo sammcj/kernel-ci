@@ -1,4 +1,4 @@
-FROM debian:wheezy
+FROM debian:bookworm
 MAINTAINER Sam McLeod
 
 ENV DEBIAN_FRONTEND noninteractive
