@@ -19,5 +19,5 @@ jobs:
     steps:
       - uses: "actions/checkout@v3"
       - name: "Check for TODOs and create or update issues"
-        uses: "alstr/todo-to-issue-action@v4"
+        uses: "alstr/todo-to-issue-action@v5"
         id: "todo"
